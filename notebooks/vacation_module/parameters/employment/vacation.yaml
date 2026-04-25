@@ -1,0 +1,52 @@
+description: Altersabhaengiger Ferienanspruch der Angestellten
+metadata:
+  reference:
+    - title: "Ferienanspruch der Angestellten (Art. 1)"
+
+age_threshold_youth:
+  description: Obere Altersgrenze fuer den erhoehten Ferienanspruch junger Angestellter (bis und mit diesem Altersjahr)
+  metadata:
+    unit: year
+  values:
+    2000-01-01:
+      value: 20
+
+age_threshold_middle:
+  description: Altersjahr, ab dessen Kalenderjahr der mittlere Ferienanspruch (6 Wochen) gilt
+  metadata:
+    unit: year
+  values:
+    2000-01-01:
+      value: 50
+
+age_threshold_senior:
+  description: Altersjahr, ab dessen Kalenderjahr der hoechste Ferienanspruch (7 Wochen) gilt
+  metadata:
+    unit: year
+  values:
+    2000-01-01:
+      value: 60
+
+weeks_youth:
+  description: Ferien in Wochen bis zum Kalenderjahr, in dem das 20. Altersjahr vollendet wird
+  values:
+    2000-01-01:
+      value: 6
+
+weeks_standard:
+  description: Ferien in Wochen ab dem Kalenderjahr, in dem das 21. Altersjahr vollendet wird
+  values:
+    2000-01-01:
+      value: 5
+
+weeks_middle:
+  description: Ferien in Wochen ab dem Kalenderjahr, in dem das 50. Altersjahr vollendet wird
+  values:
+    2000-01-01:
+      value: 6
+
+weeks_senior:
+  description: Ferien in Wochen ab dem Kalenderjahr, in dem das 60. Altersjahr vollendet wird
+  values:
+    2000-01-01:
+      value: 7

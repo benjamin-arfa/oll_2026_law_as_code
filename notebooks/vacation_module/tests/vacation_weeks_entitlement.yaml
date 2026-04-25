@@ -1,0 +1,41 @@
+- name: "Angestellter mit 19 Jahren - 6 Wochen Ferien"
+  period: 2024
+  input:
+    date_of_birth: 2005-06-15
+  output:
+    vacation_weeks_entitlement: 6
+
+- name: "Angestellter wird 20 im Kalenderjahr - letztes Jahr mit 6 Wochen"
+  period: 2024
+  input:
+    date_of_birth: 2004-11-02
+  output:
+    vacation_weeks_entitlement: 6
+
+- name: "Angestellter wird 21 im Kalenderjahr - 5 Wochen"
+  period: 2024
+  input:
+    date_of_birth: 2003-03-10
+  output:
+    vacation_weeks_entitlement: 5
+
+- name: "Angestellter 35 Jahre - 5 Wochen"
+  period: 2024
+  input:
+    date_of_birth: 1989-07-01
+  output:
+    vacation_weeks_entitlement: 5
+
+- name: "Angestellter wird 50 im Kalenderjahr - 6 Wochen"
+  period: 2024
+  input:
+    date_of_birth: 1974-08-20
+  output:
+    vacation_weeks_entitlement: 6
+
+- name: "Angestellter wird 60 im Kalenderjahr - 7 Wochen"
+  period: 2024
+  input:
+    date_of_birth: 1964-12-31
+  output:
+    vacation_weeks_entitlement: 7
