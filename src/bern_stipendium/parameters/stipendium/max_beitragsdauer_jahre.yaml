@@ -1,0 +1,11 @@
+description: >
+  Maximale Beitragsdauer in Ausbildungsjahren — kumuliert über alle vom
+  Kanton geförderten Ausbildungen einer Person.
+metadata:
+  unit: year
+  reference:
+    - title: "ABG Art. 14 Abs. 1 — Maximale Beitragsdauer"
+      href: "https://www.belex.sites.be.ch/data/438.31/de"
+values:
+  2010-01-01:
+    value: 12

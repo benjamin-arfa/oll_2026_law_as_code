@@ -1,0 +1,12 @@
+description: >
+  Anzahl Tertiärjahre, für die das volle Stipendium gewährt wird. Ab dem
+  vierten Tertiärjahr werden nur noch zwei Drittel des anerkannten Bedarfs
+  als Stipendium gewährt (Art. 10 ABG).
+metadata:
+  unit: year
+  reference:
+    - title: "ABG Art. 10 — Stipendiengewährung Tertiärstufe"
+      href: "https://www.belex.sites.be.ch/data/438.31/de"
+values:
+  2010-01-01:
+    value: 3

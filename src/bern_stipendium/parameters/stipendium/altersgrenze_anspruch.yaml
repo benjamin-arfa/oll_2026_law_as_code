@@ -1,0 +1,13 @@
+description: >
+  Altersgrenze für den Anspruch auf Ausbildungsbeiträge. Nach diesem Alter
+  besteht grundsätzlich kein Anspruch mehr — vorbehalten bleiben die
+  Ausnahmetatbestände nach Art. 14 Abs. 4 ABG (beruflicher Wiedereinstieg
+  nach Familienphase, wichtige Gründe).
+metadata:
+  unit: year
+  reference:
+    - title: "ABG Art. 14 — Altersgrenze"
+      href: "https://www.belex.sites.be.ch/data/438.31/de"
+values:
+  2010-01-01:
+    value: 35

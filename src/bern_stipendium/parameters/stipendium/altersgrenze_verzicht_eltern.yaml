@@ -1,0 +1,11 @@
+description: >
+  Alter, ab dem teilweise auf die Anrechnung elterlicher Mittel verzichtet
+  wird (Art. 15 Abs. 2 ABG).
+metadata:
+  unit: year
+  reference:
+    - title: "ABG Art. 15 Abs. 2 — Anrechnung elterlicher Mittel"
+      href: "https://www.belex.sites.be.ch/data/438.31/de"
+values:
+  2010-01-01:
+    value: 25

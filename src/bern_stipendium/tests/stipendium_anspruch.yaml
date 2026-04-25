@@ -1,0 +1,158 @@
+# Tests for the Bern scholarship eligibility logic (ABG / ABV).
+#
+# Run with:  openfisca test tests/ --country-package <package>
+
+- name: "Erstausbildungs-Lehrling, 18 Jahre, Wohnsitz Bern, bedürftig — Anspruch JA"
+  period: 2024
+  input:
+    persons:
+      lara:
+        wohnsitz_grundlage: elterlicher_wohnsitz
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: sekundarstufe_ii
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 2
+        kumulierte_ausbildungsjahre: 1
+        anerkannte_ausbildungskosten: 18000
+        eigene_anrechenbare_mittel: 2000
+        alter: 18
+    households:
+      h1:
+        applicants: ["lara"]
+        parents: []
+        eltern_anrechenbare_mittel: 5000
+  output:
+    persons:
+      lara:
+        stipendium_anspruch: true
+        # Fehlbetrag = 18000 - (2000 + 5000) = 11000
+        # Sek II → volle Quote
+        fehlbetrag: 11000
+        stipendium_betrag: 11000
+
+- name: "Tertiärstudent im 5. Jahr — nur 2/3 des Fehlbetrags"
+  period: 2024
+  input:
+    persons:
+      mehmet:
+        wohnsitz_grundlage: elterlicher_wohnsitz
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 5
+        kumulierte_ausbildungsjahre: 6
+        anerkannte_ausbildungskosten: 30000
+        eigene_anrechenbare_mittel: 6000
+        alter: 24
+    households:
+      h2:
+        applicants: ["mehmet"]
+        eltern_anrechenbare_mittel: 9000
+  output:
+    persons:
+      mehmet:
+        stipendium_anspruch: true
+        fehlbetrag: 15000  # 30000 - 15000
+        # Quote 2/3 (0.6667) → ≈ 10000
+        stipendium_betrag: 10000.5
+
+- name: "Zweitausbildung — kein Stipendium, nur Darlehen (Art. 10 Abs. 1 ABG)"
+  period: 2024
+  input:
+    persons:
+      sven:
+        wohnsitz_grundlage: elterlicher_wohnsitz
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: zweitausbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        anerkannte_ausbildungskosten: 25000
+        eigene_anrechenbare_mittel: 1000
+        alter: 28
+    households:
+      h3:
+        applicants: ["sven"]
+        eltern_anrechenbare_mittel: 0
+  output:
+    persons:
+      sven:
+        stipendium_grundsaetzlich_ausgeschlossen: true
+        stipendium_anspruch: false
+        stipendium_betrag: 0
+
+- name: "37-jährige Person mit beruflichem Wiedereinstieg — Altersausnahme greift"
+  period: 2024
+  input:
+    persons:
+      maria:
+        wohnsitz_grundlage: finanziell_unabhaengig
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: umschulung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 1
+        kumulierte_ausbildungsjahre: 2
+        anerkannte_ausbildungskosten: 28000
+        eigene_anrechenbare_mittel: 8000
+        jahre_vollerwerbstaetigkeit: 6
+        alter: 37
+        beruflicher_wiedereinstieg_nach_familienphase: true
+    households:
+      h4:
+        applicants: ["maria"]
+        eltern_anrechenbare_mittel: 0
+  output:
+    persons:
+      maria:
+        altersgrenze_eingehalten: true
+        # >25 Jahre UND >4 Jahre VEF → Verzicht auf Anrechnung Eltern
+        verzicht_auf_anrechnung_eltern: true
+        stipendium_anspruch: true
+
+- name: "Wohnsitz nicht in Bern — kein Anspruch"
+  period: 2024
+  input:
+    persons:
+      pierre:
+        wohnsitz_grundlage: keiner
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: sekundarstufe_ii
+        ausbildungsstaette_anerkannt: true
+        anerkannte_ausbildungskosten: 15000
+        alter: 17
+    households:
+      h5:
+        applicants: ["pierre"]
+        eltern_anrechenbare_mittel: 1000
+  output:
+    persons:
+      pierre:
+        hat_stipendienrechtlichen_wohnsitz_bern: false
+        stipendium_anspruch: false
+
+- name: "Maximale Beitragsdauer 12 Jahre erreicht — kein Anspruch mehr"
+  period: 2024
+  input:
+    persons:
+      ueberlang:
+        wohnsitz_grundlage: elterlicher_wohnsitz
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 7
+        kumulierte_ausbildungsjahre: 12
+        anerkannte_ausbildungskosten: 30000
+        alter: 30
+    households:
+      h6:
+        applicants: ["ueberlang"]
+        eltern_anrechenbare_mittel: 5000
+  output:
+    persons:
+      ueberlang:
+        maximale_beitragsdauer_eingehalten: false
+        stipendium_anspruch: false

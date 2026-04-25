@@ -1,0 +1,11 @@
+description: >
+  Reduzierte Stipendienquote ab dem vierten Tertiärjahr — zwei Drittel
+  des anerkannten Fehlbetrags (Art. 10 ABG).
+metadata:
+  unit: /1
+  reference:
+    - title: "ABG Art. 10 — Stipendiengewährung Tertiärstufe"
+      href: "https://www.belex.sites.be.ch/data/438.31/de"
+values:
+  2010-01-01:
+    value: 0.6667
