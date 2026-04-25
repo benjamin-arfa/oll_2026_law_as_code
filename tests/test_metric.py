@@ -93,3 +93,83 @@ class TestMetricBootstrapMode:
         pred = _make_prediction(GOOD_CODE, GOOD_YAML)
         result = code_quality_metric(_make_example(GOOD_CODE), pred, trace="bootstrap")
         assert isinstance(result, bool)
+
+
+# ── Edge case tests (TODO 9c) ────────────────────────────────────────────────
+
+# Code that loads into TBS but fails at simulation due to referencing
+# a variable that doesn't exist in the system.
+LOADS_BUT_FAILS_SIMULATE = """\
+from openfisca_core.model_api import *
+from openfisca_switzerland.entities import Person
+
+class test_fails_simulate_var(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+    label = "References a nonexistent variable"
+
+    def formula(person, period):
+        return person("totally_nonexistent_variable_xyz", period) * 2
+"""
+
+# Code that simulates but produces the wrong value (0.0 instead of expected).
+WRONG_VALUE_CODE = """\
+from openfisca_core.model_api import *
+from openfisca_switzerland.entities import Person
+
+class test_wrong_value_var(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+    label = "Always returns zero"
+
+    def formula(person, period):
+        return person("gross_monthly_salary", period) * 0
+"""
+
+
+class TestMetricEdgeCases:
+    def test_loads_but_fails_simulate_gets_partial_score(self):
+        """Code that loads into TBS but fails at calculation gets load points but not run points."""
+        pred = _make_prediction(LOADS_BUT_FAILS_SIMULATE, GOOD_YAML)
+        score = code_quality_metric(_make_example(), pred)
+        # Should get: parse(0.20) + yaml(0.15) + structural checks + load(0.15)
+        # But NOT simulation(0.10) or value(0.15)
+        assert score >= 0.55  # parse + yaml + some structural + load
+        assert score < 0.85  # should not get full marks
+
+    def test_simulates_but_wrong_value_still_scores(self):
+        """Code that simulates but produces wrong value still gets execution points."""
+        pred = _make_prediction(WRONG_VALUE_CODE, GOOD_YAML)
+        score = code_quality_metric(_make_example(WRONG_VALUE_CODE), pred)
+        # Should get: parse + yaml + structural + load + simulate
+        # Numeric match gives 0.15 in the current logic (since expected_code exists)
+        assert score >= 0.65
+
+    def test_bootstrap_threshold_rejects_bad_code(self):
+        """Bootstrap mode returns False for code scoring below 0.7."""
+        pred = _make_prediction("class Broken(", "bad: yaml: [")
+        result = code_quality_metric(_make_example(), pred, trace="bootstrap")
+        assert result is False
+
+    def test_bootstrap_threshold_accepts_good_code(self):
+        """Bootstrap mode returns True for code scoring at or above 0.7."""
+        pred = _make_prediction(GOOD_CODE, GOOD_YAML)
+        result = code_quality_metric(_make_example(GOOD_CODE), pred, trace="bootstrap")
+        assert result is True
+
+    def test_bootstrap_threshold_boundary(self):
+        """Code right at the boundary: moderate structural score but no execution."""
+        # Code with structural elements but that won't execute well
+        borderline_code = (
+            "class X(Variable):\n"
+            "    value_type = float\n"
+            "    definition_period = MONTH\n"
+            "    def formula(p, period): return 0\n"
+        )
+        pred = _make_prediction(borderline_code, GOOD_YAML)
+        score_raw = code_quality_metric(_make_example(), pred)
+        score_boot = code_quality_metric(_make_example(), pred, trace="bootstrap")
+        # Verify consistency: bootstrap result matches threshold check
+        assert score_boot == (score_raw >= 0.7)
