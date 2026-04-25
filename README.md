@@ -2,8 +2,9 @@
 Law as code
 
 Source : 
-https://staging.openjustice.ai
-https://www.lexfind.ch/fe/de/search
+
+- https://staging.openjustice.ai
+- https://www.lexfind.ch/fe/de/search
 
 ## Swiss Law as Code – Automated Semantic Transformation of Fiscal & Social Norms
 
