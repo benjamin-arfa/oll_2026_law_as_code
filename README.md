@@ -55,3 +55,8 @@ Resource Suite needed: Fedlex SPARQL access, Catala/OpenFisca language specs, an
 * [172.220.1 Bundespersonalgesetz vom 24. März 2000 (BPG)](https://www.fedlex.admin.ch/eli/cc/2001/123/de#art_17_a)
 * [172.220.111.3 Bundespersonalverordnung vom 3. Juli 2001 (BPV)](https://www.fedlex.admin.ch/eli/cc/2001/319/de#art_64)
 * [172.220.111.31 Verordnung des EFD vom 6. Dezember 2001 zur Bundespersonalverordnung (VBPV)](https://www.fedlex.admin.ch/eli/cc/2001/485/de#art_28https:/)
+
+
+# Tooling
+
+Excalidraw Whiteboard: https://excalidraw.com/#room=9a56e72ab2a304a74f7b,r8v-RfuEp3JbrC6NBUSgXQ
