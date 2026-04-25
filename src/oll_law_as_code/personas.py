@@ -18,6 +18,7 @@ class Persona:
     annual_income: Decimal
     description: str = ""
     expected_values: dict[str, Decimal] = field(default_factory=dict)
+    extra_inputs: dict[str, dict[str, bool | int | float]] = field(default_factory=dict)
 
 
 # --- Test Personas ---
@@ -89,4 +90,63 @@ ELENA = Persona(
     },
 )
 
-ALL_PERSONAS = [ANNA, BEAT, CLARA, DAVID, ELENA]
+FRANCOIS = Persona(
+    name="Francois",
+    age=50,
+    canton="GE",
+    employment_status="employed",
+    marital_status="married",
+    annual_income=Decimal("150000"),
+    description="Employer in Geneva whose employee caused a tort — tests CO 55 employer liability",
+    expected_values={
+        "or_employer_liability": Decimal("1"),  # True
+    },
+    extra_inputs={
+        "is_employer_of_tortfeasor": {"2024": True},
+        "employee_committed_tort": {"2024": True},
+        "tort_in_course_of_employment": {"2024": True},
+        "has_damage": {"2024": True},
+        "has_causation": {"2024": True},
+        "employer_proves_diligence": {"2024": False},
+    },
+)
+
+GIULIA = Persona(
+    name="Giulia",
+    age=30,
+    canton="VD",
+    employment_status="employed",
+    marital_status="single",
+    annual_income=Decimal("70000"),
+    description="Buyer of defective goods in Vaud — tests CO 197 warranty claims",
+    expected_values={
+        "or_warranty_claim_valid": Decimal("1"),  # True
+    },
+    extra_inputs={
+        "has_sale_or_work_contract": {"2024": True},
+        "has_defect": {"2024": True},
+        "defect_before_risk_transfer": {"2024": True},
+        "buyer_unaware_of_defect": {"2024": True},
+        "timely_notice_of_defect": {"2024": True},
+    },
+)
+
+HANS = Persona(
+    name="Hans",
+    age=55,
+    canton="ZH",
+    employment_status="self_employed",
+    marital_status="divorced",
+    annual_income=Decimal("200000"),
+    description="Contractor in Zurich with overdue payment — tests CO 102 debtor default",
+    expected_values={
+        "or_debtor_in_default": Decimal("1"),  # True
+    },
+    extra_inputs={
+        "obligation_is_due": {"2024": True},
+        "debtor_has_been_summoned": {"2024": True},
+        "debtor_failed_to_perform": {"2024": True},
+    },
+)
+
+ALL_PERSONAS = [ANNA, BEAT, CLARA, DAVID, ELENA, FRANCOIS, GIULIA, HANS]

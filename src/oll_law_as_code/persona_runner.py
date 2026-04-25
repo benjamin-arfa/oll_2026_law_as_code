@@ -27,6 +27,9 @@ def persona_to_openfisca_input(
     year = period[:4]
     person_data["self_employment_income"] = {year: annual_self_employment}
 
+    for var_name, period_values in persona.extra_inputs.items():
+        person_data[var_name] = period_values
+
     return {
         "persons": {persona.name.lower(): person_data},
         "households": {"hh": {"parents": [persona.name.lower()]}},
