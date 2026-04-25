@@ -17,6 +17,10 @@ class LegalToCode(dspy.Signature):
     article_reference: str = dspy.InputField(
         desc="Article identifier, e.g. 'AHVG Art. 5' or 'DBG Art. 25'"
     )
+    available_variables: str = dspy.InputField(
+        desc="Already-defined OpenFisca variables that may be referenced via person(\"<name>\", period). Empty string if none.",
+        default="",
+    )
     openfisca_variable: str = dspy.OutputField(
         desc="Python class inheriting from Variable with a formula() method implementing the legal logic"
     )
@@ -35,8 +39,9 @@ class LegalTransformer(dspy.Module):
         super().__init__()
         self.transform = dspy.ChainOfThought(LegalToCode)
 
-    def forward(self, legal_article_text: str, article_reference: str):
+    def forward(self, legal_article_text: str, article_reference: str, available_variables: str = ""):
         return self.transform(
             legal_article_text=legal_article_text,
             article_reference=article_reference,
+            available_variables=available_variables,
         )

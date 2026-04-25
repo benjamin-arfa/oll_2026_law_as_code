@@ -139,3 +139,104 @@ def run_generated_code(
         )
 
     return ExecutionResult(success=True, computed_values=computed)
+
+
+def run_batch_result(
+    code_strings: list[str],
+    input_data: dict | None = None,
+    period: str = "2024-01",
+) -> ExecutionResult:
+    """Execute multiple generated code snippets together in a single TaxBenefitSystem.
+
+    This is needed for cross-referencing variables: e.g. ``ahv_employer_contribution``
+    calls ``person("ahv_employee_contribution", period)`` so both must be loaded
+    into the same system.
+
+    Args:
+        code_strings: List of Python source strings, each defining one or more
+            OpenFisca Variable subclasses.
+        input_data: Simulation input dict (defaults to standard test persona).
+        period: Period string for the simulation.
+
+    Returns:
+        An :class:`ExecutionResult` with computed values for *all* variables.
+    """
+    if input_data is None:
+        input_data = {
+            "persons": {"p1": {"gross_monthly_salary": {period: 7083.33}}},
+            "households": {"h1": {"parents": ["p1"]}},
+        }
+
+    all_variable_classes: list[type] = []
+
+    for i, code_string in enumerate(code_strings):
+        code_string = _strip_code_fences(code_string)
+
+        # --- Parse ---
+        try:
+            ast.parse(code_string)
+        except SyntaxError as exc:
+            return ExecutionResult(
+                success=False,
+                error=f"SyntaxError in snippet {i}: {exc}",
+                error_stage="parse",
+            )
+
+        # --- Execute & extract Variable classes ---
+        try:
+            namespace: dict = {}
+            exec(code_string, namespace)  # noqa: S102
+        except Exception as exc:
+            return ExecutionResult(
+                success=False,
+                error=f"{type(exc).__name__} in snippet {i}: {exc}",
+                error_stage="load_variable",
+            )
+
+        classes = _extract_variable_classes(namespace)
+        if not classes:
+            return ExecutionResult(
+                success=False,
+                error=f"No Variable subclass found in snippet {i}",
+                error_stage="load_variable",
+            )
+        all_variable_classes.extend(classes)
+
+    # --- Add all variables to a single TaxBenefitSystem ---
+    try:
+        tbs = CountryTaxBenefitSystem()
+        for var_cls in all_variable_classes:
+            tbs.add_variable(var_cls)
+    except Exception as exc:
+        return ExecutionResult(
+            success=False,
+            error=f"{type(exc).__name__}: {exc}",
+            error_stage="load_variable",
+        )
+
+    # --- Build simulation and calculate ---
+    try:
+        builder = SimulationBuilder()
+        simulation = builder.build_from_dict(tbs, input_data)
+    except Exception as exc:
+        return ExecutionResult(
+            success=False,
+            error=f"{type(exc).__name__}: {exc}",
+            error_stage="simulate",
+        )
+
+    computed = {}
+    try:
+        for var_cls in all_variable_classes:
+            name = var_cls.__name__
+            result_array = simulation.calculate(name, period)
+            computed[name] = float(result_array[0])
+    except Exception as exc:
+        return ExecutionResult(
+            success=False,
+            error=f"{type(exc).__name__}: {exc}",
+            error_stage="calculate",
+            computed_values=computed,
+        )
+
+    return ExecutionResult(success=True, computed_values=computed)

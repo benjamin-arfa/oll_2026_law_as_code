@@ -17,9 +17,13 @@ def make_examples() -> list[dspy.Example]:
         ex = dspy.Example(
             legal_article_text=data["legal_article_text"].rstrip("\n"),
             article_reference=data["article_reference"],
+            available_variables=data.get("available_variables", "").rstrip("\n"),
             openfisca_variable=data["openfisca_variable"].rstrip("\n"),
             parameter_yaml=data["parameter_yaml"].rstrip("\n"),
             reasoning=data["reasoning"].rstrip("\n"),
         )
         examples.append(ex)
-    return [ex.with_inputs("legal_article_text", "article_reference") for ex in examples]
+    return [
+        ex.with_inputs("legal_article_text", "article_reference", "available_variables")
+        for ex in examples
+    ]

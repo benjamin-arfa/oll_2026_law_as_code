@@ -1,0 +1,40 @@
+legal_article_text: |
+  Art. 14 — Beiträge der Arbeitgeber
+
+  1 Der Arbeitgeber schuldet den gleichen Beitrag wie der Arbeitnehmer gemäss Art. 5.
+
+  2 Er entrichtet überdies einen Beitrag von 1,7 Prozent des massgebenden Lohnes an die Verwaltungskosten der Ausgleichskassen.
+article_reference: "AHVG Art. 14"
+available_variables: |
+  Available OpenFisca variables you may reference with person("<name>", period):
+    - ahv_employee_contribution (float, Person, MONTH) — AHV/IV/EO employee contribution  [from AHVG Art. 5]
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class ahv_employer_contribution(Variable):
+      value_type = float
+      entity = Person
+      definition_period = MONTH
+      label = "AHV/IV/EO employer contribution (Art. 14 AHVG)"
+
+      def formula(person, period, parameters):
+          employee_contribution = person("ahv_employee_contribution", period)
+          return employee_contribution
+parameter_yaml: |
+  description: AHV/IV/EO employer contribution — same rate as employee (Art. 14 AHVG)
+  metadata:
+    unit: /1
+    reference:
+      - title: "AHVG Art. 14 — Beiträge der Arbeitgeber"
+        href: "https://www.fedlex.admin.ch/eli/cc/63/837_843_843/de#art_14"
+  values:
+    2024-01-01:
+      value: 0.0435
+reasoning: |
+  1. Art. 14 para. 1 states the employer owes the same contribution as the employee per Art. 5.
+  2. This is a direct cross-reference — the employer contribution equals the employee contribution.
+  3. Instead of re-computing the rate × salary, we call person("ahv_employee_contribution", period).
+  4. OpenFisca handles the dependency resolution at runtime automatically.
+  5. entity = Person, definition_period = MONTH, value_type = float — same as the referenced variable.
