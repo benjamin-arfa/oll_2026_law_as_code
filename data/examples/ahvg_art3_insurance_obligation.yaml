@@ -1,0 +1,42 @@
+legal_article_text: |
+  Art. 3 — Obligatorisch versicherte Personen
+
+  1 Obligatorisch versichert sind natürliche Personen mit Wohnsitz in der Schweiz.
+
+  2 Obligatorisch versichert sind auch natürliche Personen, die in der Schweiz eine Erwerbstätigkeit ausüben.
+
+  3 Die Versicherungspflicht beginnt am 1. Januar nach Vollendung des 17. Altersjahres.
+article_reference: "AHVG Art. 3"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class ahv_insurance_obligation(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "AHV insurance obligation (Art. 3 AHVG)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          age = person("age", period)
+          has_residence = person("has_swiss_residence", period)
+          has_employment = person("has_swiss_employment", period)
+          return (age >= 18) * (has_residence + has_employment > 0)
+parameter_yaml: |
+  description: AHV insurance obligation age threshold (Art. 3 AHVG)
+  metadata:
+    reference:
+      - title: "AHVG Art. 3 — Obligatorisch versicherte Personen"
+        href: "https://www.fedlex.admin.ch/eli/cc/63/837_843_843/de#art_3"
+  values:
+    1948-01-01:
+      value: 18
+reasoning: |
+  1. Art. 3 defines who is obligatorily insured under AHV.
+  2. The result is a yes/no determination → value_type = bool.
+  3. It applies to individual persons → entity = Person.
+  4. Insurance status is assessed yearly → definition_period = YEAR.
+  5. Two conditions: Swiss residence OR Swiss employment, AND age >= 18.
+  6. The age threshold (18, after completing 17th year) is stored as a parameter.

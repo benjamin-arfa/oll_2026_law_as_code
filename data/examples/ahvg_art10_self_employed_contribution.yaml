@@ -1,0 +1,43 @@
+legal_article_text: |
+  Art. 10 — Beiträge der Selbständigerwerbenden
+
+  1 Vom Einkommen aus selbständiger Erwerbstätigkeit wird ein Beitrag von 8,1 Prozent erhoben.
+
+  2 Das Einkommen aus selbständiger Erwerbstätigkeit wird für die Berechnung des Beitrages auf die nächsten 100 Franken abgerundet.
+article_reference: "AHVG Art. 10"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class ahv_self_employed_contribution(Variable):
+      value_type = float
+      entity = Person
+      definition_period = YEAR
+      label = "AHV/IV/EO self-employed contribution (Art. 10 AHVG)"
+
+      def formula(person, period, parameters):
+          income = person("self_employment_income", period)
+          rate = parameters(period).social_security.ahv.self_employed_rate
+          return income * rate
+parameter_yaml: |
+  description: AHV/IV/EO self-employed contribution rate (Art. 10 AHVG)
+  metadata:
+    unit: /1
+    reference:
+      - title: "AHVG Art. 10 — Beiträge der Selbständigerwerbenden"
+        href: "https://www.fedlex.admin.ch/eli/cc/63/837_843_843/de#art_10"
+  values:
+    2024-01-01:
+      value: 0.081
+    2020-01-01:
+      value: 0.079
+    1997-01-01:
+      value: 0.077
+reasoning: |
+  1. Art. 10 para. 1 levies a contribution of 8.1% on self-employment income.
+  2. The contribution is a monetary amount → value_type = float.
+  3. It applies to self-employed individuals → entity = Person.
+  4. Self-employment income is reported annually → definition_period = YEAR.
+  5. The formula multiplies self_employment_income by the self_employed_rate parameter.
+  6. The rate (0.081) is stored in a YAML parameter with historical values.
