@@ -1,0 +1,45 @@
+legal_article_text: |
+  Art. 97 — Inexécution
+
+  1 Lorsque le créancier ne peut obtenir l'exécution de l'obligation ou ne peut l'obtenir qu'imparfaitement, le débiteur est tenu de réparer le dommage en résultant, à moins qu'il ne prouve qu'aucune faute ne lui est imputable.
+article_reference: "OR Art. 97"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_contractual_liability(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Contractual liability (Art. 97 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          has_contractual_obligation = person("has_contractual_obligation", period)
+          has_breach_of_obligation = person("has_breach_of_obligation", period)
+          has_contractual_damage = person("has_contractual_damage", period)
+          has_adequate_causation = person("has_adequate_causation", period)
+          has_presumed_fault = person("has_presumed_fault", period)
+          return has_contractual_obligation * has_breach_of_obligation * has_contractual_damage * has_adequate_causation * has_presumed_fault > 0
+parameter_yaml: |
+  description: Contractual liability provision reference (Art. 97 CO) — no numerical parameters
+  metadata:
+    reference:
+      - title: "CO Art. 97 — Inexécution"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_97"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 97 CO defines contractual liability for non-performance or defective performance.
+  2. The result is a yes/no determination (liable or not) → value_type = bool.
+  3. All conditions must be met (conjunctive AND):
+     - A contractual obligation exists between the parties
+     - The defendant has breached a contractual obligation
+     - Plaintiff has suffered damage from breach (positive interest)
+     - There is an adequate causal link between breach and damage
+     - Fault is presumed (has_presumed_fault defaults to True)
+  4. KEY INSIGHT: has_presumed_fault defaults to True because fault is PRESUMED under CO 97. The defendant must prove absence of fault to escape liability (reversed burden of proof). This is the fundamental difference from delictual liability (CO 41) where fault must be proven.
+  5. Source: wiki-CO/pretentions/dommages-interets.md lines 8-66.
+  6. No numerical parameters — the parameter YAML contains only a reference entry.

@@ -1,0 +1,44 @@
+legal_article_text: |
+  Art. 62 — Enrichissement illégitime
+
+  1 Celui qui, sans cause légitime, s'est enrichi aux dépens d'autrui, est tenu à restitution.
+
+  2 La restitution est due, en particulier, de ce qui a été reçu sans cause valable, en vertu d'une cause qui ne s'est pas réalisée, ou d'une cause qui a cessé d'exister.
+article_reference: "OR Art. 62"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_unjust_enrichment(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Unjust enrichment (Art. 62 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          has_enrichment = person("has_enrichment", period)
+          has_impoverishment = person("has_impoverishment", period)
+          has_connexity = person("has_connexity", period)
+          has_no_legal_basis = person("has_no_legal_basis", period)
+          return has_enrichment * has_impoverishment * has_connexity * has_no_legal_basis > 0
+parameter_yaml: |
+  description: Unjust enrichment provision reference (Art. 62 CO) — no numerical parameters
+  metadata:
+    reference:
+      - title: "CO Art. 62 — Enrichissement illégitime"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_62"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 62 CO defines unjust enrichment: enrichment without legitimate cause at the expense of another.
+  2. The result is a yes/no determination (claim valid or not) → value_type = bool.
+  3. All 4 conditions must be met (conjunctive AND):
+     - Enrichment of the defendant (CO 62)
+     - Impoverishment of the plaintiff (CO 62)
+     - Connexity between enrichment and impoverishment (CO 62)
+     - Absence of legal basis / cause (CO 62)
+  4. Source: wiki-CO/pretentions/restitution.md lines 129-173.
+  5. No numerical parameters — the parameter YAML contains only a reference entry.

@@ -1,0 +1,48 @@
+legal_article_text: |
+  Art. 55 — Responsabilité de l'employeur
+
+  1 L'employeur est responsable du dommage causé par ses travailleurs ou ses autres auxiliaires dans l'accomplissement de leur travail, s'il ne prouve qu'il a pris tous les soins commandés par les circonstances pour détourner un dommage de ce genre ou que sa diligence n'eût pas empêché le dommage de se produire.
+
+  2 L'employeur a son recours contre la personne qui a causé le préjudice.
+article_reference: "OR Art. 55"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_employer_liability(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Employer liability (Art. 55 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          is_employer_of_tortfeasor = person("is_employer_of_tortfeasor", period)
+          employee_committed_tort = person("employee_committed_tort", period)
+          tort_in_course_of_employment = person("tort_in_course_of_employment", period)
+          has_damage = person("has_damage", period)
+          has_causation = person("has_causation", period)
+          employer_proves_diligence = person("employer_proves_diligence", period)
+          return is_employer_of_tortfeasor * employee_committed_tort * tort_in_course_of_employment * has_damage * has_causation * (1 - employer_proves_diligence) > 0
+parameter_yaml: |
+  description: Employer liability provision reference (Art. 55 CO) — no numerical parameters
+  metadata:
+    reference:
+      - title: "CO Art. 55 — Responsabilité de l'employeur"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_55"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 55 CO defines employer liability for torts committed by employees.
+  2. The result is a yes/no determination (employer liable or not) → value_type = bool.
+  3. All conditions must be met (conjunctive AND) with a defense via negation:
+     - Defendant is the employer of the tortfeasor
+     - Employee committed an unlawful act (CO 55, CO 41)
+     - Tort was committed in the course of employment
+     - Plaintiff has suffered damage
+     - Adequate causal link between tort and damage
+     - Employer has NOT proved due diligence (triple proof: cura in eligendo, in instruendo, in custodiendo)
+  4. KEY INSIGHT: The "triple proof of diligence" is modeled as a DEFENSE via (1 - employer_proves_diligence). Same pattern as (1 - person("stipendium_grundsaetzlich_ausgeschlossen", period)) in src/bern_stipendium/variables/eligibility.py. The employer_proves_diligence defaults to False, so liability is the default unless the employer proves otherwise.
+  5. Source: wiki-CO/pretentions/dommages-interets.md lines 438-456.

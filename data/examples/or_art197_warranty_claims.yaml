@@ -1,0 +1,46 @@
+legal_article_text: |
+  Art. 197 — Garantie en raison des défauts de la chose
+
+  1 Le vendeur est tenu de garantir l'acheteur tant en raison des qualités promises qu'en raison des défauts qui, matériellement ou juridiquement, enlèvent à la chose soit sa valeur, soit son utilité prévue, ou qui les diminuent dans une notable mesure.
+
+  2 Il répond de ces défauts, même s'il les ignorait.
+article_reference: "OR Art. 197"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_warranty_claim_valid(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Warranty claim valid (Art. 197 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          has_sale_or_work_contract = person("has_sale_or_work_contract", period)
+          has_defect = person("has_defect", period)
+          defect_before_risk_transfer = person("defect_before_risk_transfer", period)
+          buyer_unaware_of_defect = person("buyer_unaware_of_defect", period)
+          timely_notice_of_defect = person("timely_notice_of_defect", period)
+          return has_sale_or_work_contract * has_defect * defect_before_risk_transfer * buyer_unaware_of_defect * timely_notice_of_defect > 0
+parameter_yaml: |
+  description: Warranty claims provision reference (Art. 197 CO) — no numerical parameters
+  metadata:
+    reference:
+      - title: "CO Art. 197 — Garantie en raison des défauts de la chose"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_197"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 197 CO defines the seller's warranty obligation for defects in the thing sold.
+  2. The result is a yes/no determination (warranty claim valid or not) → value_type = bool.
+  3. Warranty claims require 5 cumulative conditions from the actions édiliciennes framework (conjunctive AND):
+     - Valid sale or work contract exists (CO 184 ss / CO 363 ss)
+     - The thing has a defect (CO 197)
+     - Defect existed before transfer of risk (CO 185)
+     - Buyer was unaware of defect at contract time (CO 200)
+     - Timely notice of defect was given (CO 201)
+  4. Source: wiki-CO/pretentions/dommages-interets.md lines 185-224.
+  5. No numerical parameters — the parameter YAML contains only a reference entry.

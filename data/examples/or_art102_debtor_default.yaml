@@ -1,0 +1,42 @@
+legal_article_text: |
+  Art. 102 — Demeure du débiteur
+
+  1 Le débiteur d'une obligation exigible est mis en demeure par l'interpellation du créancier.
+
+  2 Lorsque le jour de l'exécution a été déterminé d'un commun accord, ou fixé par l'une des parties en vertu d'un droit à elle réservé et au moyen d'un avertissement régulier, le débiteur est mis en demeure par la seule expiration de ce jour.
+article_reference: "OR Art. 102"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_debtor_in_default(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Debtor in default (Art. 102 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          obligation_is_due = person("obligation_is_due", period)
+          debtor_has_been_summoned = person("debtor_has_been_summoned", period)
+          debtor_failed_to_perform = person("debtor_failed_to_perform", period)
+          return obligation_is_due * debtor_has_been_summoned * debtor_failed_to_perform > 0
+parameter_yaml: |
+  description: Debtor default provision reference (Art. 102 CO) — no numerical parameters
+  metadata:
+    reference:
+      - title: "CO Art. 102 — Demeure du débiteur"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_102"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 102 CO defines debtor default (demeure) when the debtor fails to perform an exigible obligation after being summoned.
+  2. The result is a yes/no determination (debtor in default or not) → value_type = bool.
+  3. All conditions must hold (conjunctive AND, sequential):
+     - Obligation is due and exigible (CO 75 ss)
+     - Debtor has been summoned / interpellated (CO 102 I) or fixed term expired (CO 102 II)
+     - Debtor still hasn't performed
+  4. Source: wiki-CO/pretentions/execution.md lines 219, 258-260.
+  5. No numerical parameters — the parameter YAML contains only a reference entry.

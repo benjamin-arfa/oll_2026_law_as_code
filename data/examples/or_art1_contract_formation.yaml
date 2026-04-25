@@ -1,0 +1,48 @@
+legal_article_text: |
+  Art. 1 — Conclusion du contrat
+
+  1 Le contrat est parfait lorsque les parties ont, réciproquement et d'une manière concordante, manifesté leur volonté.
+
+  Cette manifestation peut être expresse ou tacite.
+article_reference: "OR Art. 1"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_contract_formation(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Contract formation (Art. 1 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          has_offer = person("has_offer", period)
+          has_acceptance = person("has_acceptance", period)
+          has_concordance = person("has_concordance", period)
+          has_reciprocity = person("has_reciprocity", period)
+          has_required_form = person("has_required_form", period)
+          has_capacity = person("has_capacity", period)
+          return has_offer * has_acceptance * has_concordance * has_reciprocity * has_required_form * has_capacity > 0
+parameter_yaml: |
+  description: Contract formation provision reference (Art. 1 CO) — no numerical parameters
+  metadata:
+    reference:
+      - title: "CO Art. 1 — Conclusion du contrat"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_1"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 1 CO defines contract formation as the reciprocal and concordant expression of will.
+  2. The result is a yes/no determination (contract formed or not) → value_type = bool.
+  3. Contract formation requires ALL conditions (conjunctive AND):
+     - An offer (offre) has been made (CO 1)
+     - An acceptance (acceptation) has been communicated (CO 1)
+     - Offer and acceptance concord in meaning (principle of trust, CO 1-2)
+     - Reciprocity: offer addressed to acceptor and acceptance to offeror (CO 1)
+     - Required form observed (CO 11 ss), or no form required
+     - Parties have capacity to contract (CC 12 ss)
+  4. Source: wiki-CO/pretentions/execution.md lines 15-69.
+  5. No numerical parameters — the parameter YAML contains only a reference entry.

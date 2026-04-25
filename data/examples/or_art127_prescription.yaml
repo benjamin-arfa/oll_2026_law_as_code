@@ -1,0 +1,52 @@
+legal_article_text: |
+  Art. 127 — Prescription ordinaire
+
+  Toutes les actions se prescrivent par dix ans, lorsque le droit civil fédéral n'en dispose pas autrement.
+
+  Art. 128 — Prescription de cinq ans
+
+  Se prescrivent par cinq ans: les loyers et fermages, les intérêts de capitaux et toutes autres redevances périodiques.
+article_reference: "OR Art. 127-128"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_claim_prescribed(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Claim is prescribed (Art. 127-128 CO)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          claim_age_years = person("claim_age_years", period)
+          is_periodic_claim = person("is_periodic_claim", period)
+          general_years = parameters(period).obligations.prescription.general_years
+          periodic_years = parameters(period).obligations.prescription.periodic_years
+          return is_periodic_claim * (claim_age_years >= periodic_years) + (1 - is_periodic_claim) * (claim_age_years >= general_years) > 0
+parameter_yaml: |
+  description: Prescription periods (Art. 127-128 CO)
+  metadata:
+    reference:
+      - title: "CO Art. 127 — Prescription ordinaire"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_127"
+  obligations:
+    prescription:
+      general_years:
+        values:
+          1912-01-01:
+            value: 10
+      periodic_years:
+        values:
+          1912-01-01:
+            value: 5
+reasoning: |
+  1. Art. 127 CO sets the general prescription period at 10 years for all claims.
+  2. Art. 128 CO sets a shorter 5-year period for periodic claims (rent, interest, salary).
+  3. The result is a yes/no determination (claim prescribed or not) → value_type = bool.
+  4. Two paths with numeric thresholds:
+     - If periodic claim: prescribed if claim_age_years >= 5
+     - If non-periodic claim: prescribed if claim_age_years >= 10
+  5. This is one of the few CO examples with actual numeric parameters stored in YAML.
+  6. Source: wiki-CO/pretentions/execution.md lines 330-338.
