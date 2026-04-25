@@ -44,9 +44,9 @@ def main():
     # --- Optimize with BootstrapFewShot ---
     optimizer = dspy.BootstrapFewShot(
         metric=code_quality_metric,
-        max_bootstrapped_demos=2,
-        max_labeled_demos=3,
-        max_rounds=1,
+        max_bootstrapped_demos=4,    # was 2 — now captures both AHVG and CO patterns
+        max_labeled_demos=5,          # was 3
+        max_rounds=2,                 # was 1
     )
 
     student = LegalTransformer()
