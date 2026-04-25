@@ -15,6 +15,12 @@ _ART_REF_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Matches shorthand CO/OR references like "CO 20", "OR 41"
+_CO_SHORT_RE = re.compile(
+    r"(?:CO|OR)\s+(\d+)",  # "CO 20", "OR 41"
+    re.IGNORECASE,
+)
+
 
 @dataclass
 class ArticleInput:
@@ -57,6 +63,11 @@ def extract_references(text: str, own_law: str = "") -> list[str]:
             ref = f"{law.upper()} Art. {art_num}"
         else:
             ref = f"Art. {art_num}"
+        refs.append(ref)
+    # Also scan for CO/OR shorthand references ("CO 20", "OR 41")
+    for m in _CO_SHORT_RE.finditer(text):
+        art_num = m.group(1)
+        ref = f"OR Art. {art_num}"
         refs.append(ref)
     # deduplicate while preserving order
     seen: set[str] = set()
