@@ -1,0 +1,13 @@
+description: AHV/IV/EO employee contribution rate (Art. 5 AHVG)
+metadata:
+  unit: /1
+  reference:
+    - title: "AHVG Art. 5 — Beiträge von Einkommen aus unselbständiger Erwerbstätigkeit"
+      href: "https://www.fedlex.admin.ch/eli/cc/63/837_843_843/de#art_5"
+values:
+  2024-01-01:
+    value: 0.0435
+  2020-01-01:
+    value: 0.0425
+  1997-01-01:
+    value: 0.0415

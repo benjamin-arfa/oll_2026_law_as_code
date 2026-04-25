@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import dspy
 
 from oll_law_as_code.pipeline import LegalTransformer
+from oll_law_as_code.runner import run_generated_code
 from oll_law_as_code.tracking import setup_tracking
 
 AHVG_ART_5 = """\
@@ -27,11 +28,20 @@ def main():
     experiment = setup_tracking()
     print(f"MLflow tracking active — experiment: {experiment}")
 
-    # --- Configure Cerebras via LiteLLM ---
-    lm = dspy.LM(
-        "cerebras/qwen-3-235b-a22b-instruct-2507",
-        api_key=os.environ["CEREBRAS_API_KEY"],
-    )
+    # --- Configure LLM provider ---
+    provider = os.environ.get("LLM_PROVIDER", "cerebras")
+    if provider == "openjustice":
+        from oll_law_as_code.openjustice_lm import OpenJusticeLM
+
+        lm = OpenJusticeLM(
+            model=os.environ.get("OPENJUSTICE_MODEL", "gpt-5.4-nano"),
+            api_key=os.environ["OPENJUSTICE_API_KEY"],
+        )
+    else:
+        lm = dspy.LM(
+            "cerebras/qwen-3-235b-a22b-instruct-2507",
+            api_key=os.environ["CEREBRAS_API_KEY"],
+        )
     dspy.configure(lm=lm)
 
     # --- Run the pipeline ---
@@ -64,6 +74,36 @@ def main():
     print("REASONING")
     print("=" * 60)
     print(result.reasoning)
+
+    # --- Execute generated code ---
+    print("\n" + "=" * 60)
+    print("EXECUTION TEST (Anna: CHF 7,083.33/month)")
+    print("=" * 60)
+
+    anna_input = {
+        "persons": {
+            "anna": {
+                "gross_monthly_salary": {"2024-01": 7083.33},
+                "age": {"2024-01": 35},
+            },
+        },
+        "households": {"hh": {"parents": ["anna"]}},
+    }
+
+    exec_result = run_generated_code(
+        result.openfisca_variable,
+        result.parameter_yaml,
+        input_data=anna_input,
+        period="2024-01",
+    )
+
+    if exec_result.success:
+        print("Status: SUCCESS")
+        for var_name, value in exec_result.computed_values.items():
+            print(f"  {var_name} = {value:.2f}")
+    else:
+        print(f"Status: FAILED at stage '{exec_result.error_stage}'")
+        print(f"  Error: {exec_result.error}")
 
 
 if __name__ == "__main__":

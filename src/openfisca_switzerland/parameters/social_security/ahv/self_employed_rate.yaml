@@ -1,0 +1,13 @@
+description: AHV/IV/EO self-employed contribution rate (Art. 8 AHVG)
+metadata:
+  unit: /1
+  reference:
+    - title: "AHVG Art. 8 — Beiträge von Einkommen aus selbständiger Erwerbstätigkeit"
+      href: "https://www.fedlex.admin.ch/eli/cc/63/837_843_843/de#art_8"
+values:
+  2024-01-01:
+    value: 0.081
+  2020-01-01:
+    value: 0.079
+  1997-01-01:
+    value: 0.077

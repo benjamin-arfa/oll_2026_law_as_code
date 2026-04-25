@@ -31,10 +31,8 @@ ANNA = Persona(
     annual_income=Decimal("85000"),
     description="Single employed woman in Zürich, standard case",
     expected_values={
-        # TODO: Fill with computed expected AHV/tax values
-        "ahv_contribution_employee": Decimal("0"),
-        "ahv_contribution_employer": Decimal("0"),
-        "federal_income_tax": Decimal("0"),
+        # CHF 85,000 / 12 = CHF 7,083.33 × 4.35% = CHF 308.12
+        "ahv_employee_contribution": Decimal("308.12"),
     },
 )
 
@@ -47,8 +45,8 @@ BEAT = Persona(
     annual_income=Decimal("120000"),
     description="Married self-employed man in Bern, tests self-employed AHV rates",
     expected_values={
-        "ahv_contribution_self_employed": Decimal("0"),
-        "federal_income_tax": Decimal("0"),
+        # CHF 120,000 × 8.1% = CHF 9,720.00
+        "ahv_self_employed_contribution": Decimal("9720.00"),
     },
 )
 
@@ -61,7 +59,7 @@ CLARA = Persona(
     annual_income=Decimal("0"),
     description="Retired widow in Genève, tests AHV pension calculation",
     expected_values={
-        "ahv_pension_monthly": Decimal("0"),
+        # Pension calculation not yet covered
     },
 )
 
@@ -74,8 +72,7 @@ DAVID = Persona(
     annual_income=Decimal("12000"),
     description="Student with part-time job in Basel, tests AHV exemption threshold",
     expected_values={
-        "ahv_contribution_employee": Decimal("0"),
-        "ahv_exempt": True,  # type: ignore[dict-item]
+        # AHV exemption threshold not yet covered
     },
 )
 
@@ -88,8 +85,7 @@ ELENA = Persona(
     annual_income=Decimal("95000"),
     description="Cross-border worker (Grenzgängerin) in Ticino, tests international provisions",
     expected_values={
-        "ahv_contribution_employee": Decimal("0"),
-        "cross_border_applicable": True,  # type: ignore[dict-item]
+        # Cross-border provisions not yet covered
     },
 )
 
