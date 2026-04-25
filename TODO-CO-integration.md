@@ -1070,6 +1070,8 @@ TODO 7 (re-optimize)         ← needs all examples in place first
 TODO 8 (validate)            ← end-to-end verification
   ↓
 TODO 4 (skills)              ← most complex, can be deferred if needed
+  ↓
+TODO 9 (tests)               ← expand test coverage for CO formulas
 ```
 
 ## Summary of Files to Create/Modify
@@ -1094,6 +1096,58 @@ TODO 4 (skills)              ← most complex, can be deferred if needed
 | **MODIFY** | `src/oll_law_as_code/references.py` |
 | **MODIFY** | `optimize.py` |
 | **CREATE** | `run_co.py` |
+| **CREATE** | `tests/test_co_formulas.py` |
+| **CREATE** | `tests/test_persona_integration.py` |
+| **MODIFY** | `tests/test_metric.py` |
+| **MODIFY** | `tests/test_references.py` |
+
+---
+
+## TODO 9: Expand test coverage
+
+A test suite exists in `tests/` with 74 passing tests. Add the following tests to improve coverage:
+
+### 9a. Add integration tests for CO formula execution
+
+**File:** `tests/test_co_formulas.py`
+
+Test that each CO YAML example's `openfisca_variable` code actually loads into the TaxBenefitSystem and produces correct boolean results when executed with appropriate inputs. For each CO article (Art. 1, 20, 41, 55, 62, 97, 102, 127, 197):
+
+1. Load the variable code from the YAML example
+2. `exec()` it and add to TaxBenefitSystem
+3. Run a simulation with all conditions True → expect True result
+4. Run a simulation with one key condition False → expect False result
+
+### 9b. Add persona integration tests
+
+**File:** `tests/test_persona_integration.py`
+
+Test `run_persona_tests()` from `persona_runner.py` with actual generated variable code. For each CO persona (Francois, Giulia, Hans), verify that when the corresponding formula variable is loaded, the persona's `expected_values` match the simulation output.
+
+### 9c. Add edge case tests for metric
+
+**File:** `tests/test_metric.py` (extend existing)
+
+- Test metric with code that loads but fails at simulation stage
+- Test metric with code that simulates but produces wrong values
+- Test that bootstrap threshold (0.7) correctly separates good/bad predictions
+
+### 9d. Add topological sort stress tests
+
+**File:** `tests/test_references.py` (extend existing)
+
+- Test with 10+ articles forming a deep dependency chain
+- Test with diamond dependencies (A depends on B and C, both depend on D)
+- Verify that articles external to the batch are correctly ignored
+
+### Verification for TODO 9
+
+```bash
+python -m pytest tests/ -v
+```
+All tests must pass.
+
+---
 
 ## Key Reference Files (read-only, for context)
 
