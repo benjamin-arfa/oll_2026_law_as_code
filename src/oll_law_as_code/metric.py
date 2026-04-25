@@ -62,18 +62,21 @@ def code_quality_metric(example, prediction, trace=None) -> float | bool:
     except yaml.YAMLError:
         pass
 
-    # --- Structural checks (0.0625 each, total 0.25) ---
+    # --- Structural checks (0.05 each, total 0.25) ---
     if re.search(r"class\s+\w+\(Variable\)", code):
-        score += 0.0625
+        score += 0.05
 
     if "def formula(" in code:
-        score += 0.0625
+        score += 0.05
 
     if "definition_period" in code:
-        score += 0.0625
+        score += 0.05
 
     if re.search(r"\d{4}-\d{2}-\d{2}", yaml_text):
-        score += 0.0625
+        score += 0.05
+
+    if re.search(r"value_type\s*=\s*(bool|float|int)", code):
+        score += 0.05
 
     # ===== Tier 2: Execution (0.0 – 0.4) =====
 
@@ -96,7 +99,15 @@ def code_quality_metric(example, prediction, trace=None) -> float | bool:
                 # Check if computed value matches expected (if available)
                 expected_code = getattr(example, "openfisca_variable", None)
                 if expected_code and result.computed_values:
-                    score += 0.15
+                    if re.search(r"value_type\s*=\s*bool", code):
+                        # Boolean: check that at least one computed value is True
+                        for var_name, vals in result.computed_values.items():
+                            if any(v in (True, 1, 1.0) for v in (vals if hasattr(vals, '__iter__') else [vals])):
+                                score += 0.15
+                                break
+                    else:
+                        # Numeric: existing 1% tolerance check
+                        score += 0.15
 
     if trace is not None:
         return score >= 0.7

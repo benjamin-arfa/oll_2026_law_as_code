@@ -68,7 +68,20 @@ def run_generated_code(
 
     if input_data is None:
         input_data = {
-            "persons": {"p1": {"gross_monthly_salary": {period: 7083.33}}},
+            "persons": {
+                "p1": {
+                    "gross_monthly_salary": {period: 7083.33},
+                    # CO boolean defaults for smoke-testing
+                    "has_offer": {period: True},
+                    "has_acceptance": {period: True},
+                    "has_concordance": {period: True},
+                    "has_reciprocity": {period: True},
+                    "has_unlawful_act": {period: True},
+                    "has_damage": {period: True},
+                    "has_causation": {period: True},
+                    "has_intent": {period: True},
+                },
+            },
             "households": {"h1": {"parents": ["p1"]}},
         }
 
