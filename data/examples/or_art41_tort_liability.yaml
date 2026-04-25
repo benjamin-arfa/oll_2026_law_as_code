@@ -1,0 +1,49 @@
+legal_article_text: |
+  Art. 41 — Haftungsbedingungen
+
+  1 Wer einem andern widerrechtlich Schaden zufügt, sei es mit Absicht, sei es aus Fahrlässigkeit, wird ihm zum Ersatze verpflichtet.
+
+  2 Ebenso ist zum Ersatze verpflichtet, wer einem andern in einer gegen die guten Sitten verstossenden Weise absichtlich Schaden zufügt.
+article_reference: "OR Art. 41"
+openfisca_variable: |
+  from openfisca_core.model_api import *
+  from openfisca_switzerland.entities import Person
+
+
+  class or_tort_liability(Variable):
+      value_type = bool
+      entity = Person
+      definition_period = YEAR
+      label = "Tort liability (Art. 41 OR)"
+      default_value = False
+
+      def formula(person, period, parameters):
+          has_unlawful_act = person("has_unlawful_act", period)
+          has_damage = person("has_damage", period)
+          has_causation = person("has_causation", period)
+          has_intent = person("has_intent", period)
+          has_negligence = person("has_negligence", period)
+          is_contrary_to_morals = person("is_contrary_to_morals", period)
+          # Al. 1: unlawful act + damage + causation + fault (intent or negligence)
+          al1 = has_unlawful_act * has_damage * has_causation * (has_intent + has_negligence > 0)
+          # Al. 2: intentional + contrary to morals + damage + causation
+          al2 = has_intent * is_contrary_to_morals * has_damage * has_causation
+          return al1 + al2 > 0
+parameter_yaml: |
+  description: Tort liability provision reference (Art. 41 OR) — no numerical parameters
+  metadata:
+    reference:
+      - title: "OR Art. 41 — Haftung im Allgemeinen / Voraussetzungen der Haftung"
+        href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/de#art_41"
+  values:
+    1912-01-01:
+      value: true
+reasoning: |
+  1. Art. 41 defines the conditions for tort liability under Swiss law.
+  2. The result is a yes/no determination (liable or not) → value_type = bool.
+  3. It applies to individual persons → entity = Person.
+  4. Liability is assessed per event, approximated yearly → definition_period = YEAR.
+  5. Al. 1 requires four conjunctive conditions: unlawful act AND damage AND causation AND fault (intent OR negligence).
+  6. Al. 2 provides an alternative ground: intentional harm contrary to morals AND damage AND causation.
+  7. The overall result is: liability under al. 1 OR liability under al. 2.
+  8. There are no numerical parameters (no rates, thresholds, or amounts) — the parameter YAML contains only a reference entry.

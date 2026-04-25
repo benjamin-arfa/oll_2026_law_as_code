@@ -21,11 +21,20 @@ def main():
     experiment = setup_tracking()
     print(f"MLflow tracking active — experiment: {experiment}")
 
-    # --- Configure Cerebras via LiteLLM ---
-    lm = dspy.LM(
-        "cerebras/qwen-3-235b-a22b-instruct-2507",
-        api_key=os.environ["CEREBRAS_API_KEY"],
-    )
+    # --- Configure LLM provider ---
+    provider = os.environ.get("LLM_PROVIDER", "cerebras")
+    if provider == "openjustice":
+        from oll_law_as_code.openjustice_lm import OpenJusticeLM
+
+        lm = OpenJusticeLM(
+            model=os.environ.get("OPENJUSTICE_MODEL", "gpt-5.4-nano"),
+            api_key=os.environ["OPENJUSTICE_API_KEY"],
+        )
+    else:
+        lm = dspy.LM(
+            "cerebras/qwen-3-235b-a22b-instruct-2507",
+            api_key=os.environ["CEREBRAS_API_KEY"],
+        )
     dspy.configure(lm=lm)
 
     # --- Training examples ---
