@@ -7,14 +7,46 @@ import logging
 import re
 from dataclasses import dataclass, field
 
+from openfisca_core.model_api import *  # noqa: F403
 from openfisca_core.model_api import Variable
 from openfisca_core.simulations import SimulationBuilder
 
 from openfisca_switzerland import CountryTaxBenefitSystem
+from openfisca_switzerland.entities import Household, Person
+
+from bern_stipendium.system import CountryTaxBenefitSystem as BernTaxBenefitSystem
 
 log = logging.getLogger(__name__)
 
+TBS_FACTORIES: dict[str, callable] = {
+    "openfisca_switzerland": lambda: CountryTaxBenefitSystem(),
+    "bern_stipendium": lambda: BernTaxBenefitSystem(),
+}
+
+# Default household role key per system
+_HOUSEHOLD_ROLES: dict[str, str] = {
+    "openfisca_switzerland": "parents",
+    "bern_stipendium": "applicants",
+}
+
 _CODE_FENCE_RE = re.compile(r"^```\w*\n?|```$", re.MULTILINE)
+
+
+def _resolve_period(period: str, definition_period) -> str:
+    """Return 'YYYY' for YEAR variables, pass through otherwise."""
+    if str(definition_period).upper() == "YEAR":
+        return period[:4]
+    return period
+
+
+def _build_exec_namespace() -> dict:
+    """Build a namespace pre-populated with OpenFisca names for exec()."""
+    import openfisca_core.model_api as _model_api
+
+    ns = {name: getattr(_model_api, name) for name in dir(_model_api) if not name.startswith("_")}
+    ns["Person"] = Person
+    ns["Household"] = Household
+    return ns
 
 
 @dataclass
@@ -98,7 +130,7 @@ def run_generated_code(
 
     # --- Stage 2: Execute & extract Variable classes ---
     try:
-        namespace: dict = {}
+        namespace = _build_exec_namespace()
         exec(code_string, namespace)  # noqa: S102
     except Exception as exc:
         return ExecutionResult(
@@ -145,7 +177,90 @@ def run_generated_code(
     try:
         for var_cls in variable_classes:
             name = var_cls.__name__
-            result_array = simulation.calculate(name, period)
+            calc_period = _resolve_period(period, var_cls.definition_period)
+            result_array = simulation.calculate(name, calc_period)
+            computed[name] = float(result_array[0])
+    except Exception as exc:
+        return ExecutionResult(
+            success=False,
+            error=f"{type(exc).__name__}: {exc}",
+            error_stage="calculate",
+            computed_values=computed,
+        )
+
+    return ExecutionResult(success=True, computed_values=computed)
+
+
+def run_variables(
+    variable_names: list[str],
+    input_data: dict | None = None,
+    period: str = "2024-01",
+    system: str = "openfisca_switzerland",
+) -> ExecutionResult:
+    """Execute pre-registered OpenFisca variables by name.
+
+    Unlike :func:`run_batch_result` which ``exec()``s generated code, this
+    function looks up variables that are already loaded in the
+    :class:`CountryTaxBenefitSystem` (from the ``variables/`` directory).
+
+    Args:
+        variable_names: Names of OpenFisca variables to calculate.
+        input_data: Simulation input dict (OpenFisca JSON API format).
+        period: Period string for the simulation.
+        system: Which TaxBenefitSystem to use (default Swiss).
+
+    Returns:
+        An :class:`ExecutionResult` with computed values or error details.
+    """
+    if input_data is None:
+        role_key = _HOUSEHOLD_ROLES.get(system, "parents")
+        input_data = {
+            "persons": {"p1": {"gross_monthly_salary": {period: 7083.33}}},
+            "households": {"h1": {role_key: ["p1"]}},
+        }
+
+    # --- Validate variable names against TBS ---
+    factory = TBS_FACTORIES.get(system)
+    if factory is None:
+        return ExecutionResult(
+            success=False,
+            error=f"Unknown system: {system!r}",
+            error_stage="load_variable",
+        )
+    try:
+        tbs = factory()
+    except Exception as exc:
+        return ExecutionResult(
+            success=False,
+            error=f"Failed to create TaxBenefitSystem: {exc}",
+            error_stage="load_variable",
+        )
+
+    missing = [name for name in variable_names if name not in tbs.variables]
+    if missing:
+        return ExecutionResult(
+            success=False,
+            error=f"Unknown variable(s): {', '.join(missing)}",
+            error_stage="load_variable",
+        )
+
+    # --- Build simulation ---
+    try:
+        builder = SimulationBuilder()
+        simulation = builder.build_from_dict(tbs, input_data)
+    except Exception as exc:
+        return ExecutionResult(
+            success=False,
+            error=f"{type(exc).__name__}: {exc}",
+            error_stage="simulate",
+        )
+
+    # --- Calculate each variable ---
+    computed: dict[str, float] = {}
+    try:
+        for name in variable_names:
+            calc_period = _resolve_period(period, tbs.variables[name].definition_period)
+            result_array = simulation.calculate(name, calc_period)
             computed[name] = float(result_array[0])
     except Exception as exc:
         return ExecutionResult(
@@ -201,7 +316,7 @@ def run_batch_result(
 
         # --- Execute & extract Variable classes ---
         try:
-            namespace: dict = {}
+            namespace = _build_exec_namespace()
             exec(code_string, namespace)  # noqa: S102
         except Exception as exc:
             return ExecutionResult(
@@ -249,7 +364,8 @@ def run_batch_result(
     try:
         for var_cls in all_variable_classes:
             name = var_cls.__name__
-            result_array = simulation.calculate(name, period)
+            calc_period = _resolve_period(period, var_cls.definition_period)
+            result_array = simulation.calculate(name, calc_period)
             computed[name] = float(result_array[0])
     except Exception as exc:
         return ExecutionResult(
