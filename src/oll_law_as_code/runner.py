@@ -29,6 +29,26 @@ _HOUSEHOLD_ROLES: dict[str, str] = {
     "bern_stipendium": "applicants",
 }
 
+_tbs_cache: dict[str, object] = {}
+
+
+def get_tbs(system: str = "openfisca_switzerland"):
+    """Return a cached TaxBenefitSystem, creating on first use."""
+    if system not in _tbs_cache:
+        factory = TBS_FACTORIES.get(system)
+        if factory is None:
+            raise ValueError(f"Unknown system: {system!r}")
+        _tbs_cache[system] = factory()
+        log.info("Built TBS for %r (%d variables)", system, len(_tbs_cache[system].variables))
+    return _tbs_cache[system]
+
+
+def warm_tbs_cache() -> None:
+    """Pre-build all TBS instances. Call at startup."""
+    for system in TBS_FACTORIES:
+        get_tbs(system)
+
+
 _CODE_FENCE_RE = re.compile(r"^```\w*\n?|```$", re.MULTILINE)
 
 
@@ -196,6 +216,7 @@ def run_variables(
     input_data: dict | None = None,
     period: str = "2024-01",
     system: str = "openfisca_switzerland",
+    tbs=None,
 ) -> ExecutionResult:
     """Execute pre-registered OpenFisca variables by name.
 
@@ -220,21 +241,21 @@ def run_variables(
         }
 
     # --- Validate variable names against TBS ---
-    factory = TBS_FACTORIES.get(system)
-    if factory is None:
-        return ExecutionResult(
-            success=False,
-            error=f"Unknown system: {system!r}",
-            error_stage="load_variable",
-        )
-    try:
-        tbs = factory()
-    except Exception as exc:
-        return ExecutionResult(
-            success=False,
-            error=f"Failed to create TaxBenefitSystem: {exc}",
-            error_stage="load_variable",
-        )
+    if tbs is None:
+        try:
+            tbs = get_tbs(system)
+        except ValueError:
+            return ExecutionResult(
+                success=False,
+                error=f"Unknown system: {system!r}",
+                error_stage="load_variable",
+            )
+        except Exception as exc:
+            return ExecutionResult(
+                success=False,
+                error=f"Failed to create TaxBenefitSystem: {exc}",
+                error_stage="load_variable",
+            )
 
     missing = [name for name in variable_names if name not in tbs.variables]
     if missing:

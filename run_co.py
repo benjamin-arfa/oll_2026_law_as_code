@@ -35,6 +35,7 @@ def main():
     result = transformer(
         legal_article_text=OR_ART_20,
         article_reference="OR Art. 20",
+        available_variables="has_impossible_object\nhas_illicit_object\nhas_immoral_object\nhas_form_defect",
     )
 
     print("=== Generated Code ===")

@@ -41,6 +41,14 @@ class has_swiss_employment(Variable):
     default_value = True
 
 
+class is_self_employed(Variable):
+    value_type = bool
+    entity = Person
+    definition_period = YEAR
+    label = "Whether the person is self-employed"
+    default_value = False
+
+
 # ===========================================================================
 # CO Art. 41 — Responsabilité délictuelle (Tort Liability)
 # ===========================================================================

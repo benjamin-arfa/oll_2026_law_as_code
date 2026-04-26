@@ -19,3 +19,11 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
         param_dir = COUNTRY_DIR / "parameters"
         if param_dir.exists():
             self.load_parameters(str(param_dir))
+
+    def get_package_metadata(self):
+        return {
+            "name": "openfisca-switzerland",
+            "version": "0.1.0",
+            "repository_url": "",
+            "location": str(COUNTRY_DIR.parent),
+        }
