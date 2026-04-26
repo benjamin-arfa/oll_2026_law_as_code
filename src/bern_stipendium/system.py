@@ -11,9 +11,11 @@ Bootstrap from openfisca-core. To use:
     simulation.calculate("stipendium_anspruch", "2024")
 """
 
+import inspect
 import os
 
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+from openfisca_core.variables import Variable
 
 from .entities import entities
 from .variables import enums, inputs, eligibility
@@ -26,9 +28,12 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
     def __init__(self):
         super().__init__(entities)
 
-        # Load all parameter YAML files (recursively walks the directory)
         self.load_parameters(os.path.join(COUNTRY_DIR, "parameters"))
 
-        # Register every Variable defined in our modules.
+        # Register Variable subclasses directly. This avoids
+        # `add_variables_from_file`, which calls `get_package_metadata` and
+        # logs a malformed warning when the package isn't pip-installed.
         for module in (inputs, eligibility):
-            self.add_variables_from_file(module.__file__)
+            for _, cls in inspect.getmembers(module, inspect.isclass):
+                if issubclass(cls, Variable) and cls is not Variable and cls.__module__ == module.__name__:
+                    self.add_variable(cls)
