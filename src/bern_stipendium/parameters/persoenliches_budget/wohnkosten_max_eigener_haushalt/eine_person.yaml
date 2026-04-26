@@ -1,0 +1,11 @@
+description: >
+  Maximale anerkannte Wohnkosten im persönlichen Budget für eine Einzelperson
+  im eigenen Haushalt (Anhang A1 zur ABV, Tabelle A11.6 — 1 Zimmer).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 31 / Anhang A11.6"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 10009

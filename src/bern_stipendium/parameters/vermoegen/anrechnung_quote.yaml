@@ -1,0 +1,12 @@
+description: >
+  Anrechnungsquote auf das steuerbare Vermögen — der dem Einkommen im
+  Familien- bzw. persönlichen Budget zugerechnete Anteil (Art. 16 und
+  Art. 27 ABV).
+metadata:
+  unit: ratio
+  reference:
+    - title: "ABV Art. 16, Art. 27"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 0.15

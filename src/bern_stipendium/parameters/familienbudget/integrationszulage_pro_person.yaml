@@ -1,0 +1,11 @@
+description: >
+  Integrationszulage pro Person in anerkannter Ausbildung im Haushalt
+  (Anhang A1 zur ABV, Tabelle A11.3).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 21 Abs. 1 / Anhang A11.3"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 2400

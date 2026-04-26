@@ -1,0 +1,11 @@
+description: >
+  Höchstgrenze für die Summe von Integrationszulage und Einkommensfreibetrag
+  pro Haushalt und Jahr (Art. 21 Abs. 3 ABV).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 21 Abs. 3"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 13200

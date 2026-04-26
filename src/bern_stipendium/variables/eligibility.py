@@ -5,7 +5,14 @@ modelled as a small boolean ``Variable`` with a formula. A top-level
 ``stipendium_anspruch`` variable then combines them.
 
 The amount of the scholarship is computed by ``stipendium_betrag``
-(Art. 10, Art. 16 ABG: deficit calculation).
+(Art. 10, Art. 16 ABG: deficit calculation), the amount of any
+loan by ``darlehen_betrag`` (Art. 10 Abs. 2, Art. 11 Abs. 1 ABG).
+
+The financial calculation pipeline is split across three modules:
+
+- ``familienbudget.py`` — Art. 13–24 ABV
+- ``persoenliches_budget.py`` — Art. 25–33 ABV
+- ``eligibility.py`` (this file) — eligibility gates and final aggregation
 """
 
 from openfisca_core.variables import Variable
@@ -13,12 +20,6 @@ from openfisca_core.periods import YEAR
 from numpy import where, maximum as max_
 
 from bern_stipendium.entities import Person, Household
-from bern_stipendium.variables.enums import (
-    Staatsangehoerigkeit,
-    Ausbildungstyp,
-    Ausbildungsstufe,
-    WohnsitzGrundlage,
-)
 
 
 # ===========================================================================
@@ -145,10 +146,13 @@ class verzicht_auf_anrechnung_eltern(Variable):
     entity = Person
     definition_period = YEAR
     label = (
-        "Teilweiser Verzicht auf Anrechnung elterlicher Mittel — "
-        "ab 25 Jahren ODER ab 4 Jahren Vollerwerbstätigkeit"
+        "Auszubildende(r) erfüllt die Voraussetzungen von Art. 15 Abs. 2 "
+        "ABG — ab 25 Jahren ODER ab 4 Jahren Vollerwerbstätigkeit. Die "
+        "Rechtsfolge ist die Saldoteilung nach Art. 23 Abs. 3 ABV (50 % "
+        "Familienbudget-Überschuss-Anteil), nicht eine pauschale Kürzung "
+        "der elterlichen Mittel."
     )
-    reference = "Art. 15 Abs. 2 ABG"
+    reference = "Art. 15 Abs. 2 ABG, Art. 23 Abs. 3 ABV"
 
     def formula(person, period, parameters):
         p = parameters(period).stipendium
@@ -160,36 +164,30 @@ class verzicht_auf_anrechnung_eltern(Variable):
         ) > 0
 
 
-class anrechenbare_mittel_total(Variable):
-    value_type = float
-    entity = Person
-    definition_period = YEAR
-    label = (
-        "Total anrechenbare Mittel — eigene Mittel plus (ggf. anteilige) "
-        "elterliche Mittel"
-    )
-    reference = "Art. 15 ABG"
-
-    def formula(person, period, parameters):
-        p = parameters(period).stipendium
-        eigene = person("eigene_anrechenbare_mittel", period)
-        eltern = person.household("eltern_anrechenbare_mittel", period)
-        verzicht = person("verzicht_auf_anrechnung_eltern", period)
-        # Bei Verzicht: nur ein Anteil der elterlichen Mittel wird angerechnet.
-        eltern_anteil = where(verzicht, p.eltern_quote_bei_verzicht, 1.0)
-        return eigene + eltern * eltern_anteil
-
-
 class fehlbetrag(Variable):
     value_type = float
     entity = Person
     definition_period = YEAR
-    label = "Fehlbetrag — anerkannte Kosten minus anrechenbare Mittel (Art. 16 ABG)"
+    label = (
+        "Fehlbetrag — anerkannte Kosten minus anrechenbare Mittel, "
+        "ggf. pro Kopf bei verheirateten/eingetragener Partnerschaft "
+        "(Art. 16 ABG, Art. 32 Abs. 1 ABV)."
+    )
+    reference = "Art. 16 ABG"
 
     def formula(person, period):
         kosten = person("anerkannte_ausbildungskosten", period)
         mittel = person("anrechenbare_mittel_total", period)
-        return max_(kosten - mittel, 0.0)
+        roh = max_(kosten - mittel, 0.0)
+
+        # Art. 32 Abs. 1 ABV: bei Verheirateten / eingetragener Partnerschaft
+        # Pro-Kopf-Anteil im persönlichen Budget. ``teiler`` ist 0 für
+        # Personen, die nicht die Auszubildende sind — wir teilen daher
+        # durch max(teiler, 1), und der Fehlbetrag dieser Personen ist
+        # dank fehlender Ausbildungskosten/Mittel ohnehin 0.
+        teiler = person("persoenlich_personen_anzahl", period)
+        sicherer_teiler = max_(teiler, 1)
+        return where(teiler > 1, roh / sicherer_teiler, roh)
 
 
 class beduerftig(Variable):
@@ -272,7 +270,7 @@ class stipendium_quote(Variable):
     definition_period = YEAR
     label = (
         "Quote des Fehlbetrags, die als Stipendium gewährt wird — "
-        "100% in den ersten Jahren, 2/3 ab dem 4. Tertiärjahr"
+        "100 % in den ersten Jahren, 2/3 ab dem 4. Tertiärjahr."
     )
     reference = "Art. 10 ABG"
 
@@ -305,3 +303,72 @@ class stipendium_betrag(Variable):
         fehlbetrag = person("fehlbetrag", period)
         quote = person("stipendium_quote", period)
         return anspruch * fehlbetrag * quote
+
+
+# ===========================================================================
+# Höhe des Darlehens (Art. 10 Abs. 1+2, Art. 11 Abs. 1 ABG)
+# ===========================================================================
+
+class darlehen_anspruch(Variable):
+    value_type = bool
+    entity = Person
+    definition_period = YEAR
+    label = (
+        "Anspruch auf ein Darlehen — Eligibilitätsvoraussetzungen ohne "
+        "Stipendien-Ausschluss (für Zweitausbildung) und ohne Bedürftigkeits-"
+        "Filter, da Darlehen auch bei Stipendien-Ausschluss gewährt werden."
+    )
+    reference = "Art. 10 Abs. 1, Art. 10 Abs. 2 ABG"
+
+    def formula(person, period):
+        return (
+            person("hat_stipendienrechtlichen_wohnsitz_bern", period)
+            * person("erfuellt_persoenlichen_status", period)
+            * person("ausbildungstyp_anerkannt", period)
+            * person("ausbildungsstaette_qualifiziert", period)
+            * person("beduerftig", period)
+            * person("maximale_beitragsdauer_eingehalten", period)
+            * person("altersgrenze_eingehalten", period)
+        ) > 0
+
+
+class darlehen_betrag(Variable):
+    value_type = float
+    entity = Person
+    definition_period = YEAR
+    label = (
+        "Höhe des Darlehens in CHF — bei Zweitausbildung als reines "
+        "Darlehen (Art. 10 Abs. 1 ABG), in der Tertiärstufe ab dem "
+        "4. Jahr 1/3 des Fehlbetrags zusätzlich zum Stipendium "
+        "(Art. 10 Abs. 2 ABG). Gekappt auf den lebenslangen Höchstbetrag "
+        "(Art. 11 Abs. 1 ABG)."
+    )
+    reference = "Art. 10, Art. 11 Abs. 1 ABG"
+
+    def formula(person, period, parameters):
+        anspruch = person("darlehen_anspruch", period)
+        fehl = person("fehlbetrag", period)
+
+        # Variante A: Zweitausbildung — gesamter Fehlbetrag als Darlehen
+        zweit = person("stipendium_grundsaetzlich_ausgeschlossen", period)
+
+        # Variante B: Tertiärstufe ab Jahr 4 — 1/3 des Fehlbetrags
+        stufe = person("ausbildungsstufe", period)
+        S = stufe.possible_values
+        ist_tertiaer = stufe == S.tertiaerstufe
+        jahr = person("aktuelles_ausbildungsjahr", period)
+        p = parameters(period).stipendium
+        ueber_grenze = jahr > p.tertiaer_volle_quote_jahre
+        anteil_tertiaer = ist_tertiaer * ueber_grenze * (1 - zweit)
+
+        roh = where(
+            zweit,
+            fehl,
+            anteil_tertiaer * fehl / 3.0,
+        )
+
+        # Lebenslange Höchstgrenze (Art. 11 Abs. 1 ABG)
+        max_total = parameters(period).darlehen.maximalbetrag
+        kumuliert = person("kumulierte_darlehen", period)
+        verbleibend = max_(max_total - kumuliert, 0.0)
+        return anspruch * where(roh < verbleibend, roh, verbleibend)

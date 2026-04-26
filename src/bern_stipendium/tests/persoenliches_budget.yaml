@@ -1,0 +1,127 @@
+# Tests for the Persönliches Budget formulas (Art. 25–33 ABV).
+
+- name: "Persönliches Budget — eigener Haushalt ab 20 Jahren (Art. 30 Abs. 1)"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      anna:
+        wohnform: eigener_haushalt
+        in_ausbildung: true
+        alter: 22
+        zivilstand: ledig
+        wohnsitz_grundlage: finanziell_unabhaengig
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: sekundarstufe_ii
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 1
+        total_einkuenfte_steuerveranlagung: 0
+        erwerbseinkommen: 0
+        tatsaechliche_ausbildungskosten: 2500
+    households:
+      h1:
+        auszubildende: ["anna"]
+        wohnkosten_persoenlich_tatsaechlich: 11000
+  output:
+    persons:
+      anna:
+        eigener_haushalt_anerkannt: true
+        persoenlich_personen_anzahl: 1
+        persoenlich_grundbedarf: 12072         # A11.1 1 Person
+        persoenlich_wohnkosten: 10009          # A11.6 1 Zimmer (gekappt)
+        persoenlich_krankenkasse: 4600         # A11.7 junge Erwachsene
+        persoenlich_ausbildungskosten: 2000    # A11.4 Sek II (gekappt)
+        anerkannte_ausbildungskosten: 28681    # 12072 + 10009 + 4600 + 2000
+        anrechenbare_mittel_total: 0
+        fehlbetrag: 28681
+        stipendium_anspruch: true
+
+- name: "Persönliches Budget — eigener Haushalt durch Pendelzeit > 90 Min (Art. 30 Abs. 2)"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      bea:
+        wohnform: eigener_haushalt
+        in_ausbildung: true
+        alter: 18
+        # Unter 20 Jahre → Mindestalter greift nicht
+        # Aber: Pendelzeit 100 Min > 90 → Art. 30 Abs. 2
+        pendelzeit_zu_eltern_minuten: 100
+        zivilstand: ledig
+        wohnsitz_grundlage: elterlicher_wohnsitz
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: sekundarstufe_ii
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 1
+        total_einkuenfte_steuerveranlagung: 0
+        tatsaechliche_ausbildungskosten: 2000
+      bea_papa:
+        alter: 50
+        total_einkuenfte_steuerveranlagung: 90000
+    households:
+      h2:
+        auszubildende: ["bea"]
+        parents_a: ["bea_papa"]
+        wohnkosten_persoenlich_tatsaechlich: 9500
+        wohnkosten_familienbudget_tatsaechlich: 18000
+  output:
+    persons:
+      bea:
+        eigener_haushalt_anerkannt: true       # wegen Pendelzeit
+        persoenlich_grundbedarf: 12072
+        persoenlich_wohnkosten: 9500           # < 10009 → tatsächlich
+        persoenlich_krankenkasse: 1400         # 18 J. = Kinder-Bracket
+        persoenlich_ausbildungskosten: 2000
+
+- name: "Persönliches Budget — verheiratete Auszubildende, Pro-Kopf-Anteil (Art. 32 Abs. 1)"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      paula:
+        wohnform: eigener_haushalt
+        in_ausbildung: true
+        alter: 28
+        zivilstand: verheiratet
+        wohnsitz_grundlage: finanziell_unabhaengig
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: hoehere_berufsbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 1
+        total_einkuenfte_steuerveranlagung: 5000
+        erwerbseinkommen: 5000
+        tatsaechliche_ausbildungskosten: 3000
+      paula_partner:
+        alter: 30
+        total_einkuenfte_steuerveranlagung: 25000
+    households:
+      h3:
+        auszubildende: ["paula"]
+        partners: ["paula_partner"]
+        wohnkosten_persoenlich_tatsaechlich: 14000
+  output:
+    persons:
+      paula:
+        partner_qualifiziert: true
+        eigener_haushalt_anerkannt: true
+        persoenlich_personen_anzahl: 2
+        # Einkommen: 5000 + 25000 - min(5000, 6000) = 25000
+        persoenlich_einkommen: 25000
+        # Grundbedarf 2 Personen = 18468
+        persoenlich_grundbedarf: 18468
+        # Wohnkosten 2P max = 13536, tatsächlich 14000 → 13536
+        persoenlich_wohnkosten: 13536
+        # Krankenkasse: 28 erwachsene 5400 + 30 erwachsene 5400 = 10800
+        persoenlich_krankenkasse: 10800
+        # Ausbildungskosten Tertiär max = 3000
+        persoenlich_ausbildungskosten: 3000
+        # Anerkannte Kosten = 18468 + 13536 + 10800 + 3000 + 0 = 45804
+        anerkannte_ausbildungskosten: 45804
+        anrechenbare_mittel_total: 25000
+        # Roher Fehlbetrag = 45804 - 25000 = 20804
+        # Pro-Kopf-Teiler = 2 → 20804 / 2 = 10402
+        fehlbetrag: 10402

@@ -1,0 +1,13 @@
+description: >
+  Mindestdauer einer faktischen Lebensgemeinschaft in Jahren, ab der für
+  Belange des persönlichen Budgets eine Partnerschaft analog zu einer
+  eingetragenen Partnerschaft anerkannt wird (Art. 32 Abs. 2 ABV).
+  Alternative Auslösung: gemeinsames Kind.
+metadata:
+  unit: year
+  reference:
+    - title: "ABV Art. 32 Abs. 2"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 5

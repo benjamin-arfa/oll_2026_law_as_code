@@ -1,0 +1,11 @@
+description: >
+  Maximale anerkannte Wohnkosten im Familienbudget für einen Zwei-Personen-
+  Haushalt (Anhang A1 zur ABV, Tabelle A11.2 — 3 Zimmer).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 19 / Anhang A11.2"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 16260

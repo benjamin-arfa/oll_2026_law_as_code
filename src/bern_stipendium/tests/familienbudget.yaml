@@ -1,0 +1,121 @@
+# Tests for the Familienbudget formulas (Art. 13–24 ABV).
+#
+# Each scenario sets concrete inputs and asserts the intermediate
+# outputs against hand-computed values from ABV Anhang A11.
+#
+# Run with:  openfisca test src/bern_stipendium/tests --country-package bern_stipendium
+
+- name: "Familienbudget — verheiratete Eltern, gemeinsamer Haushalt, Defizit"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      lara:
+        wohnform: elterlicher_haushalt
+        in_ausbildung: true
+        alter: 18
+        total_einkuenfte_steuerveranlagung: 0
+      papa:
+        alter: 50
+        total_einkuenfte_steuerveranlagung: 20000
+      mama:
+        alter: 48
+        total_einkuenfte_steuerveranlagung: 20000
+    households:
+      h1:
+        auszubildende: ["lara"]
+        parents_a: ["papa"]
+        parents_b: ["mama"]
+        wohnkosten_familienbudget_tatsaechlich: 12000
+  output:
+    households:
+      h1:
+        haushaltsgroesse: 3
+        familienbudget_einkommen: 40000
+        familienbudget_grundbedarf: 22452       # A11.1, 3 Personen
+        familienbudget_wohnkosten: 12000        # min(12000, 16260)
+        familienbudget_krankenkasse: 12200      # 5400 + 5400 + 1400 (Lara mit 18 J. = Kinder-Bracket)
+        familienbudget_integrationszulage: 2400 # 1 × 2400
+        familienbudget_freibetraege_total: 8400 # 2400 + 6000 < 13200
+        familienbudget_lebenshaltungskosten: 46652
+        familienbudget_saldo: -15052
+    persons:
+      lara:
+        # 15052 / 3 = 5017.33…
+        familienbudget_fehlbetrag_pro_kopf_anteil: 5017.333
+
+- name: "Familienbudget — Überschuss, Art. 23 Abs. 3 Saldoteilung mit Verzicht"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      maria:
+        wohnform: elterlicher_haushalt
+        in_ausbildung: true
+        alter: 26
+        # Verzicht greift wegen Alter ≥ 25
+        jahre_vollerwerbstaetigkeit: 0
+        total_einkuenfte_steuerveranlagung: 0
+      maria_papa:
+        alter: 60
+        total_einkuenfte_steuerveranlagung: 80000
+    households:
+      h2:
+        auszubildende: ["maria"]
+        parents_a: ["maria_papa"]
+        wohnkosten_familienbudget_tatsaechlich: 10000
+  output:
+    persons:
+      maria:
+        verzicht_auf_anrechnung_eltern: true
+        # Maria erhält 50 % des Überschusses (Art. 23 Abs. 3, Verzicht):
+        # Saldo / 1 (Kinder in Ausb.) × 0.5 = 32332 × 0.5 = 16166
+        familienbudget_ueberschuss_anteil_persoenlich: 16166
+    households:
+      h2:
+        haushaltsgroesse: 2
+        familienbudget_einkommen: 80000
+        familienbudget_grundbedarf: 18468       # A11.1, 2 Personen
+        familienbudget_wohnkosten: 10000
+        # KK: papa erwachsene 5400 + maria erwachsene 5400 (≥26 J.) = 10800
+        familienbudget_krankenkasse: 10800
+        familienbudget_integrationszulage: 2400
+        familienbudget_freibetraege_total: 8400
+        # Lebenshaltungskosten = 18468 + 10000 + 10800 = 39268
+        familienbudget_lebenshaltungskosten: 39268
+        # Saldo = 80000 - 39268 - 8400 = 32332 (Überschuss)
+        familienbudget_saldo: 32332
+
+- name: "Familienbudget — Elternteil zahlt Unterhalt (Art. 14 Abs. 4)"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      paul:
+        wohnform: elterlicher_haushalt
+        in_ausbildung: true
+        alter: 17
+        total_einkuenfte_steuerveranlagung: 0
+      paul_papa:
+        alter: 50
+        total_einkuenfte_steuerveranlagung: 30000
+      paul_mama:
+        alter: 48
+        # Wird nicht gezählt — papa zahlt Unterhalt
+        total_einkuenfte_steuerveranlagung: 50000
+    households:
+      h3:
+        auszubildende: ["paul"]
+        parents_a: ["paul_papa"]
+        parents_b: ["paul_mama"]
+        # Mama ist unterhaltspflichtig — wird nicht ins Familienbudget aufgenommen
+        parent_b_zahlt_unterhalt: true
+        wohnkosten_familienbudget_tatsaechlich: 9000
+  output:
+    households:
+      h3:
+        # Mama ausgeschlossen → Haushaltsgrösse 2 (papa + paul)
+        haushaltsgroesse: 2
+        # Nur Papas Einkommen (30000)
+        familienbudget_einkommen: 30000
+        familienbudget_grundbedarf: 18468

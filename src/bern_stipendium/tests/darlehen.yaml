@@ -1,0 +1,102 @@
+# Tests for the Darlehen amount (Art. 10 Abs. 1+2, Art. 11 Abs. 1 ABG).
+# This file covers ENTITLEMENT amounts only — repayment / interest schedule
+# (Art. 11 Abs. 2 ABG) is out of scope and not modelled.
+
+- name: "Darlehen — Tertiärstufe Jahr 4+: 1/3 Darlehen + 2/3 Stipendium"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      tom:
+        wohnform: eigener_haushalt
+        in_ausbildung: true
+        alter: 24
+        zivilstand: ledig
+        wohnsitz_grundlage: finanziell_unabhaengig
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: erstausbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 4
+        kumulierte_ausbildungsjahre: 3
+        total_einkuenfte_steuerveranlagung: 0
+        erwerbseinkommen: 0
+        tatsaechliche_ausbildungskosten: 4000
+        kumulierte_darlehen: 0
+    households:
+      h1:
+        auszubildende: ["tom"]
+        wohnkosten_persoenlich_tatsaechlich: 11000
+  output:
+    persons:
+      tom:
+        stipendium_quote: 0.6667
+        # Fehlbetrag = 29681 (siehe Smoke-Test); 2/3 = 19788.32
+        stipendium_betrag: 19788.32
+        darlehen_anspruch: true
+        # 1/3 des Fehlbetrags = 29681 / 3 = 9893.67
+        darlehen_betrag: 9893.67
+
+- name: "Darlehen — Zweitausbildung als reines Darlehen (Art. 10 Abs. 1)"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      sven:
+        wohnform: eigener_haushalt
+        in_ausbildung: true
+        alter: 28
+        zivilstand: ledig
+        wohnsitz_grundlage: finanziell_unabhaengig
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: zweitausbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 1
+        total_einkuenfte_steuerveranlagung: 1000
+        erwerbseinkommen: 1000
+        tatsaechliche_ausbildungskosten: 3000
+        kumulierte_darlehen: 0
+    households:
+      h2:
+        auszubildende: ["sven"]
+        wohnkosten_persoenlich_tatsaechlich: 12000
+  output:
+    persons:
+      sven:
+        stipendium_grundsaetzlich_ausgeschlossen: true
+        stipendium_betrag: 0
+        darlehen_anspruch: true
+        # Voller Fehlbetrag als Darlehen — keine 1/3-Begrenzung in Art. 10 Abs. 1
+        # Fehlbetrag = 12072 + 10009 + 5400 + 3000 - (1000 - min(1000, 6000)) = 30481 - 0 = 30481
+        darlehen_betrag: 30481
+
+- name: "Darlehen — lebenslange Höchstgrenze 50'000 CHF (Art. 11 Abs. 1)"
+  period: 2024
+  absolute_error_margin: 0.01
+  input:
+    persons:
+      hugo:
+        wohnform: eigener_haushalt
+        in_ausbildung: true
+        alter: 30
+        zivilstand: ledig
+        wohnsitz_grundlage: finanziell_unabhaengig
+        staatsangehoerigkeit: schweizer
+        ausbildungstyp: zweitausbildung
+        ausbildungsstufe: tertiaerstufe
+        ausbildungsstaette_anerkannt: true
+        aktuelles_ausbildungsjahr: 2
+        total_einkuenfte_steuerveranlagung: 0
+        tatsaechliche_ausbildungskosten: 3000
+        # Bereits 48'000 in vorherigen Jahren genommen
+        kumulierte_darlehen: 48000
+    households:
+      h3:
+        auszubildende: ["hugo"]
+        wohnkosten_persoenlich_tatsaechlich: 12000
+  output:
+    persons:
+      hugo:
+        # Roher Anspruch wäre der Fehlbetrag, gekappt auf 50000 - 48000 = 2000
+        darlehen_betrag: 2000

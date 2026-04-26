@@ -1,0 +1,11 @@
+description: >
+  Freibetrag auf Erwerbseinkommen pro Jahr für Auszubildende auf
+  Tertiärstufe im persönlichen Budget (Anhang A1 zur ABV, Tabelle A11.10).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 26 Abs. 3 / Anhang A11.10"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 6000

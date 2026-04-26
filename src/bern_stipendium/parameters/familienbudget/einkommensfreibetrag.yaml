@@ -1,0 +1,11 @@
+description: >
+  Einkommensfreibetrag pro Familienbudget pro Jahr (Anhang A1 zur ABV,
+  Tabelle A11.8).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 21 Abs. 2 / Anhang A11.8"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 6000

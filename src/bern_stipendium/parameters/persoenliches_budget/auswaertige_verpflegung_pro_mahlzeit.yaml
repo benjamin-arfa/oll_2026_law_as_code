@@ -1,0 +1,12 @@
+description: >
+  Anerkannter Ansatz pro auswärts eingenommene Mahlzeit im persönlichen
+  Budget für Auszubildende im elterlichen Haushalt (Anhang A1 zur ABV,
+  Tabelle A11.5).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 33 Abs. 2 / Anhang A11.5"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 10

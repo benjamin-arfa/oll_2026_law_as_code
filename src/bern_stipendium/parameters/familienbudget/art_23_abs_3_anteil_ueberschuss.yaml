@@ -1,0 +1,12 @@
+description: >
+  Anteil des Familienbudget-Überschusses, der ins persönliche Budget
+  übertragen wird, wenn der Anspruch von Art. 15 Abs. 2 ABG erfasst ist
+  (Auszubildende ab 25 Jahren oder mit 4 Jahren voller Erwerbstätigkeit).
+metadata:
+  unit: ratio
+  reference:
+    - title: "ABV Art. 23 Abs. 3"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 0.5

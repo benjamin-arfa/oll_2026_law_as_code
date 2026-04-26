@@ -1,0 +1,11 @@
+description: >
+  Anerkannte Krankenkassen-Grundversicherungsprämien für Kinder
+  (0 bis 18 Jahre) (Anhang A1 zur ABV, Tabelle A11.7).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 20 / Anhang A11.7"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 1400

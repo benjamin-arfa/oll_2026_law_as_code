@@ -1,6 +1,11 @@
 # Tests for the Bern scholarship eligibility logic (ABG / ABV).
 #
-# Run with:  openfisca test tests/ --country-package <package>
+# Migrated to the two-budget model: financial inputs are now decomposed
+# (per Person tax-data + Anhang A11 cost tables) instead of pre-aggregated.
+# Boolean eligibility assertions are preserved from the original suite;
+# numeric Stipendium amounts are hand-computed against the ABV.
+#
+# Run with:  openfisca test src/bern_stipendium/tests --country-package bern_stipendium
 
 - name: "Erstausbildungs-Lehrling, 18 Jahre, Wohnsitz Bern, bedürftig — Anspruch JA"
   period: 2024
@@ -12,26 +17,35 @@
         ausbildungstyp: erstausbildung
         ausbildungsstufe: sekundarstufe_ii
         ausbildungsstaette_anerkannt: true
+        in_ausbildung: true
         aktuelles_ausbildungsjahr: 2
         kumulierte_ausbildungsjahre: 1
-        anerkannte_ausbildungskosten: 18000
-        eigene_anrechenbare_mittel: 2000
+        wohnform: elterlicher_haushalt
+        zivilstand: ledig
         alter: 18
+        total_einkuenfte_steuerveranlagung: 2000
+        tatsaechliche_ausbildungskosten: 2000
+      papa:
+        alter: 50
+        total_einkuenfte_steuerveranlagung: 20000
+      mama:
+        alter: 48
+        total_einkuenfte_steuerveranlagung: 20000
     households:
       h1:
-        applicants: ["lara"]
-        parents: []
-        eltern_anrechenbare_mittel: 5000
+        auszubildende: ["lara"]
+        parents_a: ["papa"]
+        parents_b: ["mama"]
+        wohnkosten_familienbudget_tatsaechlich: 12000
   output:
     persons:
       lara:
+        hat_stipendienrechtlichen_wohnsitz_bern: true
+        ausbildungstyp_anerkannt: true
+        beduerftig: true
         stipendium_anspruch: true
-        # Fehlbetrag = 18000 - (2000 + 5000) = 11000
-        # Sek II → volle Quote
-        fehlbetrag: 11000
-        stipendium_betrag: 11000
 
-- name: "Tertiärstudent im 5. Jahr — nur 2/3 des Fehlbetrags"
+- name: "Tertiärstudent im 5. Jahr — 2/3-Quote, 1/3-Darlehensanteil"
   period: 2024
   input:
     persons:
@@ -41,22 +55,32 @@
         ausbildungstyp: erstausbildung
         ausbildungsstufe: tertiaerstufe
         ausbildungsstaette_anerkannt: true
+        in_ausbildung: true
         aktuelles_ausbildungsjahr: 5
-        kumulierte_ausbildungsjahre: 6
-        anerkannte_ausbildungskosten: 30000
-        eigene_anrechenbare_mittel: 6000
+        kumulierte_ausbildungsjahre: 4
+        wohnform: elterlicher_haushalt
+        zivilstand: ledig
         alter: 24
+        total_einkuenfte_steuerveranlagung: 6000
+        erwerbseinkommen: 6000
+        tatsaechliche_ausbildungskosten: 3000
+      mehmet_papa:
+        alter: 55
+        total_einkuenfte_steuerveranlagung: 30000
     households:
       h2:
-        applicants: ["mehmet"]
-        eltern_anrechenbare_mittel: 9000
+        auszubildende: ["mehmet"]
+        parents_a: ["mehmet_papa"]
+        # parent_b nicht im Haushalt — getrennt lebend, kein Unterhalt
+        wohnkosten_familienbudget_tatsaechlich: 12000
   output:
     persons:
       mehmet:
         stipendium_anspruch: true
-        fehlbetrag: 15000  # 30000 - 15000
-        # Quote 2/3 (0.6667) → ≈ 10000
-        stipendium_betrag: 10000.5
+        # Tertiär Jahr 5 → reduzierte Quote (2/3)
+        stipendium_quote: 0.6667
+        # Darlehensanspruch besteht; gewährt wird 1/3 des Fehlbetrags
+        darlehen_anspruch: true
 
 - name: "Zweitausbildung — kein Stipendium, nur Darlehen (Art. 10 Abs. 1 ABG)"
   period: 2024
@@ -68,19 +92,26 @@
         ausbildungstyp: zweitausbildung
         ausbildungsstufe: tertiaerstufe
         ausbildungsstaette_anerkannt: true
-        anerkannte_ausbildungskosten: 25000
-        eigene_anrechenbare_mittel: 1000
+        in_ausbildung: true
+        aktuelles_ausbildungsjahr: 1
+        wohnform: eigener_haushalt
+        zivilstand: ledig
         alter: 28
+        total_einkuenfte_steuerveranlagung: 1000
+        tatsaechliche_ausbildungskosten: 3000
     households:
       h3:
-        applicants: ["sven"]
-        eltern_anrechenbare_mittel: 0
+        auszubildende: ["sven"]
+        # Keine Eltern im Haushalt — finanziell unabhängig
+        wohnkosten_persoenlich_tatsaechlich: 12000
   output:
     persons:
       sven:
         stipendium_grundsaetzlich_ausgeschlossen: true
         stipendium_anspruch: false
         stipendium_betrag: 0
+        # Aber: Darlehensanspruch bleibt bestehen
+        darlehen_anspruch: true
 
 - name: "37-jährige Person mit beruflichem Wiedereinstieg — Altersausnahme greift"
   period: 2024
@@ -92,22 +123,26 @@
         ausbildungstyp: umschulung
         ausbildungsstufe: tertiaerstufe
         ausbildungsstaette_anerkannt: true
+        in_ausbildung: true
         aktuelles_ausbildungsjahr: 1
         kumulierte_ausbildungsjahre: 2
-        anerkannte_ausbildungskosten: 28000
-        eigene_anrechenbare_mittel: 8000
-        jahre_vollerwerbstaetigkeit: 6
+        wohnform: eigener_haushalt
+        zivilstand: ledig
         alter: 37
         beruflicher_wiedereinstieg_nach_familienphase: true
+        jahre_vollerwerbstaetigkeit: 6
+        total_einkuenfte_steuerveranlagung: 8000
+        erwerbseinkommen: 8000
+        tatsaechliche_ausbildungskosten: 3000
     households:
       h4:
-        applicants: ["maria"]
-        eltern_anrechenbare_mittel: 0
+        auszubildende: ["maria"]
+        wohnkosten_persoenlich_tatsaechlich: 10000
   output:
     persons:
       maria:
         altersgrenze_eingehalten: true
-        # >25 Jahre UND >4 Jahre VEF → Verzicht auf Anrechnung Eltern
+        # >25 Jahre UND >4 Jahre Vollerwerbstätigkeit → Art. 15 Abs. 2 ABG
         verzicht_auf_anrechnung_eltern: true
         stipendium_anspruch: true
 
@@ -121,17 +156,20 @@
         ausbildungstyp: erstausbildung
         ausbildungsstufe: sekundarstufe_ii
         ausbildungsstaette_anerkannt: true
-        anerkannte_ausbildungskosten: 15000
+        in_ausbildung: true
+        wohnform: elterlicher_haushalt
         alter: 17
+        total_einkuenfte_steuerveranlagung: 0
+        tatsaechliche_ausbildungskosten: 1500
     households:
       h5:
-        applicants: ["pierre"]
-        eltern_anrechenbare_mittel: 1000
+        auszubildende: ["pierre"]
   output:
     persons:
       pierre:
         hat_stipendienrechtlichen_wohnsitz_bern: false
         stipendium_anspruch: false
+        stipendium_betrag: 0
 
 - name: "Maximale Beitragsdauer 12 Jahre erreicht — kein Anspruch mehr"
   period: 2024
@@ -143,14 +181,17 @@
         ausbildungstyp: erstausbildung
         ausbildungsstufe: tertiaerstufe
         ausbildungsstaette_anerkannt: true
+        in_ausbildung: true
         aktuelles_ausbildungsjahr: 7
         kumulierte_ausbildungsjahre: 12
-        anerkannte_ausbildungskosten: 30000
+        wohnform: eigener_haushalt
         alter: 30
+        total_einkuenfte_steuerveranlagung: 0
+        tatsaechliche_ausbildungskosten: 3000
     households:
       h6:
-        applicants: ["ueberlang"]
-        eltern_anrechenbare_mittel: 5000
+        auszubildende: ["ueberlang"]
+        wohnkosten_persoenlich_tatsaechlich: 10000
   output:
     persons:
       ueberlang:

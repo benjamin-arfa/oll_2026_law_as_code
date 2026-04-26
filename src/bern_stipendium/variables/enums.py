@@ -50,3 +50,23 @@ class WohnsitzGrundlage(Enum):
         "Volljährig, finanziell unabhängig durch eigene Erwerbstätigkeit"
     )
     keiner = "Kein stipendienrechtlicher Wohnsitz im Kanton Bern"
+
+
+class Wohnform(Enum):
+    """Living situation of the trainee (drives Art. 18 wg_reduktion, Art. 29 vs. 31)."""
+
+    elterlicher_haushalt = "Im elterlichen Haushalt"
+    eigener_haushalt = "Eigener Haushalt"
+    gemeinschaftlicher_haushalt = "Wohngemeinschaft / Heim / Internat"
+
+
+class Zivilstand(Enum):
+    """Marital status (Art. 14, Art. 32 ABV)."""
+
+    ledig = "Ledig"
+    verheiratet = "Verheiratet"
+    eingetragene_partnerschaft = "Eingetragene Partnerschaft"
+    faktische_partnerschaft = "Faktische Lebensgemeinschaft"
+    geschieden = "Geschieden"
+    getrennt = "Getrennt"
+    verwitwet = "Verwitwet"

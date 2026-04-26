@@ -1,0 +1,12 @@
+description: >
+  Lebenslange Höchstgrenze des Darlehensbetrags pro Person (Art. 11 Abs. 1
+  ABG). Die Grenze kann durch den Regierungsrat an die Teuerung angepasst
+  werden.
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABG Art. 11 Abs. 1"
+      href: "https://www.belex.sites.be.ch/data/438.31/de"
+values:
+  2010-01-01:
+    value: 50000

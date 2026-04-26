@@ -1,0 +1,11 @@
+description: >
+  Vermögensfreibetrag für Selbstständigerwerbende, der vor der Anrechnung
+  vom steuerbaren Vermögen abgezogen wird (Anhang A1 zur ABV, Tabelle A11.9).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 16 / Anhang A11.9"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 30000

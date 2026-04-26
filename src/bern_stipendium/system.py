@@ -18,7 +18,13 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
 
 from .entities import entities
-from .variables import enums, inputs, eligibility
+from .variables import (
+    enums,
+    inputs,
+    familienbudget,
+    persoenliches_budget,
+    eligibility,
+)
 
 
 COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,7 +39,7 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
         # Register Variable subclasses directly. This avoids
         # `add_variables_from_file`, which calls `get_package_metadata` and
         # logs a malformed warning when the package isn't pip-installed.
-        for module in (inputs, eligibility):
+        for module in (inputs, familienbudget, persoenliches_budget, eligibility):
             for _, cls in inspect.getmembers(module, inspect.isclass):
                 if issubclass(cls, Variable) and cls is not Variable and cls.__module__ == module.__name__:
                     self.add_variable(cls)

@@ -1,0 +1,11 @@
+description: >
+  Grundbedarf für den Lebensunterhalt einer Einzelperson im Familienbudget
+  (Anhang A1 zur ABV, Tabelle A11.1).
+metadata:
+  unit: currency-CHF
+  reference:
+    - title: "ABV Art. 18 / Anhang A11.1"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 12072

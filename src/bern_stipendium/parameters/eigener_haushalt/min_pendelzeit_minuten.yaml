@@ -1,0 +1,14 @@
+description: >
+  Schwellenwert (Wegzeit zwischen elterlichem Wohnort und Ausbildungsstätte)
+  in Minuten, ab dem ein eigener Haushalt als zwingender Grund nach
+  Art. 30 Abs. 2 ABV anerkannt wird. Die Verordnung spricht von "mehr als
+  eineinhalb Stunden" — der Vergleich in den Formeln erfolgt deshalb
+  strikt grösser (`>`), nicht grösser-gleich.
+metadata:
+  unit: minute
+  reference:
+    - title: "ABV Art. 30 Abs. 2"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 90

@@ -1,0 +1,11 @@
+description: >
+  Vollendetes Mindestalter, ab dem ein Auszubildender ohne weitere Begründung
+  einen eigenen Haushalt führen darf (Art. 30 Abs. 1 ABV).
+metadata:
+  unit: year
+  reference:
+    - title: "ABV Art. 30 Abs. 1"
+      href: "https://www.belex.sites.be.ch/data/438.312/de"
+values:
+  2010-01-01:
+    value: 20
