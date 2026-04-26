@@ -1,0 +1,8 @@
+description: General prescription period in years (Art. 127 CO)
+metadata:
+  reference:
+    - title: "CO Art. 127 — Prescription ordinaire"
+      href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_127"
+values:
+  1912-01-01:
+    value: 10

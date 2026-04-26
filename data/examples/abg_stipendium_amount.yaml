@@ -1,0 +1,95 @@
+article_reference: "ABG Art. 10/16"
+law_name: "Ausbildungsbeiträge Bern — Stipendium Amount"
+legal_text: |
+  Art. 10: 1 Die Ausbildungsbeiträge für Ausbildungen auf Sekundarstufe II
+  werden als Stipendien gewährt. 2 Die Ausbildungsbeiträge für Ausbildungen
+  auf Tertiärstufe werden für die ersten drei Ausbildungsjahre als Stipendien
+  und ab dem vierten Ausbildungsjahr zu einem Drittel als Stipendien und zu
+  zwei Dritteln als Darlehen gewährt.
+  Art. 16: Der Ausbildungsbeitrag entspricht dem Fehlbetrag, d. h. der
+  Differenz zwischen den anerkannten Ausbildungskosten und den anrechenbaren
+  Mitteln.
+system: "bern_stipendium"
+openfisca_variable: "stipendium_betrag"
+input_parameters:
+  - name: "wohnsitz_grundlage"
+    type: enum
+    description: "Grundlage des stipendienrechtlichen Wohnsitzes (Art. 13 ABG)"
+    allowed_values:
+      - "elterlicher_wohnsitz"
+      - "elternlos"
+      - "eltern_im_ausland"
+      - "fluechtling_staatenlos"
+      - "finanziell_unabhaengig"
+      - "keiner"
+  - name: "staatsangehoerigkeit"
+    type: enum
+    description: "Staatsangehörigkeitsstatus der Auszubildenden (Art. 12 ABG)"
+    allowed_values:
+      - "schweizer"
+      - "eu_efta_niederlassung"
+      - "aufenthaltsbewilligung_b"
+      - "fluechtling_staatenlos"
+      - "andere"
+  - name: "ausbildungstyp"
+    type: enum
+    description: "Typ der besuchten Ausbildung (Art. 6/7 ABG)"
+    allowed_values:
+      - "vorbildung"
+      - "erstausbildung"
+      - "zweitausbildung"
+      - "hoehere_berufsbildung"
+      - "umschulung"
+      - "primarstufe"
+      - "sekundarstufe_i"
+      - "weiterbildung"
+      - "zweite_hochschulausbildung"
+  - name: "ausbildungsstufe"
+    type: enum
+    description: "Stufe der Ausbildung (Art. 10 ABG)"
+    allowed_values:
+      - "sekundarstufe_ii"
+      - "tertiaerstufe"
+      - "nicht_anerkannt"
+  - name: "ausbildungsstaette_anerkannt"
+    type: bool
+    description: "Whether the educational institution is recognised by the canton (Art. 8 ABG)"
+  - name: "private_ausbildungsstaette"
+    type: bool
+    description: "Whether it is a private institution"
+  - name: "private_ausbildungsstaette_qualitaetsgesichert"
+    type: bool
+    description: "Whether the private institution has sufficient quality assurance (Art. 8 ABG)"
+  - name: "aktuelles_ausbildungsjahr"
+    type: int
+    description: "Current year of training (1, 2, 3, ...)"
+  - name: "kumulierte_ausbildungsjahre"
+    type: int
+    description: "Cumulative years of training already supported (max 12, Art. 14 ABG)"
+  - name: "anerkannte_ausbildungskosten"
+    type: float
+    description: "Recognised training and living costs in CHF (Art. 16 ABG)"
+  - name: "eigene_anrechenbare_mittel"
+    type: float
+    description: "Applicant's own countable resources (income + assets)"
+  - name: "eltern_anrechenbare_mittel"
+    type: float
+    description: "Parents' countable resources (income + assets) — household-level variable (Art. 15 ABG)"
+  - name: "jahre_vollerwerbstaetigkeit"
+    type: int
+    description: "Years of full-time employment (relevant for parental means waiver, Art. 15 ABG)"
+  - name: "alter"
+    type: int
+    description: "Age of the applicant in years"
+  - name: "beruflicher_wiedereinstieg_nach_familienphase"
+    type: bool
+    description: "Re-entry after family phase (age limit exception, Art. 14 ABG)"
+  - name: "wichtige_gruende_altersausnahme"
+    type: bool
+    description: "Important reasons for age limit exception (Art. 14 ABG)"
+keywords:
+  - stipendium
+  - scholarship
+  - Bern
+  - amount
+  - Fehlbetrag

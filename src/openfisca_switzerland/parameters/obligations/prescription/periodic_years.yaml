@@ -1,0 +1,8 @@
+description: Prescription period for periodic claims in years (Art. 128 CO)
+metadata:
+  reference:
+    - title: "CO Art. 128 — Prescription de cinq ans"
+      href: "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr#art_128"
+values:
+  1912-01-01:
+    value: 5
