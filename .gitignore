@@ -206,3 +206,6 @@ __marimo__/
 
 # Mac system files
 .DS_Store
+
+# Word temp files
+~$*.docx
