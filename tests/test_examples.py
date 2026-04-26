@@ -60,6 +60,17 @@ class TestYamlFiles:
             missing = required - set(data.keys())
             assert not missing, f"{path.name} missing keys: {missing}"
 
+    def test_co_examples_have_available_variables(self):
+        for path in sorted(DATA_DIR.glob("or_*.yaml")):
+            with open(path) as f:
+                data = yaml.safe_load(f)
+            avail = data.get("available_variables", [])
+            assert len(avail) > 0, f"{path.name} has empty available_variables"
+            # Verify each listed variable is actually referenced in the formula code
+            code = data["openfisca_variable"]
+            for var in avail:
+                assert var in code, f"{path.name}: available_variables lists '{var}' but it's not in the formula"
+
     def test_openfisca_variable_is_valid_python(self):
         import ast
         for path in sorted(DATA_DIR.glob("*.yaml")):

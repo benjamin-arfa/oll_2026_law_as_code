@@ -5,6 +5,11 @@ legal_article_text: |
 
   2 La restitution est due, en particulier, de ce qui a été reçu sans cause valable, en vertu d'une cause qui ne s'est pas réalisée, ou d'une cause qui a cessé d'exister.
 article_reference: "OR Art. 62"
+available_variables:
+  - has_enrichment
+  - has_impoverishment
+  - has_connexity
+  - has_no_legal_basis
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

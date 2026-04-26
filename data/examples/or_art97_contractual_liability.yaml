@@ -3,6 +3,12 @@ legal_article_text: |
 
   1 Lorsque le créancier ne peut obtenir l'exécution de l'obligation ou ne peut l'obtenir qu'imparfaitement, le débiteur est tenu de réparer le dommage en résultant, à moins qu'il ne prouve qu'aucune faute ne lui est imputable.
 article_reference: "OR Art. 97"
+available_variables:
+  - has_contractual_obligation
+  - has_breach_of_obligation
+  - has_contractual_damage
+  - has_adequate_causation
+  - has_presumed_fault
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

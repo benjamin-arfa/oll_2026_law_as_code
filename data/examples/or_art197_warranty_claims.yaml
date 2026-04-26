@@ -5,6 +5,12 @@ legal_article_text: |
 
   2 Il répond de ces défauts, même s'il les ignorait.
 article_reference: "OR Art. 197"
+available_variables:
+  - has_sale_or_work_contract
+  - has_defect
+  - defect_before_risk_transfer
+  - buyer_unaware_of_defect
+  - timely_notice_of_defect
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

@@ -2,13 +2,17 @@
 
 from decimal import Decimal
 
-from oll_law_as_code.personas import ALL_PERSONAS, ANNA, FRANCOIS, GIULIA, HANS, Persona
+from oll_law_as_code.personas import (
+    ALL_PERSONAS, ANNA, FRANCOIS, GIULIA, HANS,
+    FRANCOIS_DILIGENT, GIULIA_LATE_NOTICE, HANS_NOT_SUMMONED,
+    Persona,
+)
 from oll_law_as_code.persona_runner import persona_to_openfisca_input
 
 
 class TestPersonaDefinitions:
     def test_all_personas_count(self):
-        assert len(ALL_PERSONAS) == 8
+        assert len(ALL_PERSONAS) == 11
 
     def test_persona_names_unique(self):
         names = [p.name for p in ALL_PERSONAS]
@@ -26,6 +30,11 @@ class TestPersonaDefinitions:
         assert len(FRANCOIS.extra_inputs) > 0
         assert len(GIULIA.extra_inputs) > 0
         assert len(HANS.extra_inputs) > 0
+
+    def test_negative_personas_expect_false(self):
+        for persona in [FRANCOIS_DILIGENT, GIULIA_LATE_NOTICE, HANS_NOT_SUMMONED]:
+            for var_name, val in persona.expected_values.items():
+                assert val == 0, f"{persona.name}.{var_name} should expect 0 (False)"
 
     def test_extra_inputs_field_default(self):
         p = Persona(

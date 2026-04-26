@@ -5,6 +5,13 @@ legal_article_text: |
 
   2 Ebenso ist zum Ersatze verpflichtet, wer einem andern in einer gegen die guten Sitten verstossenden Weise absichtlich Schaden zufügt.
 article_reference: "OR Art. 41"
+available_variables:
+  - has_unlawful_act
+  - has_damage
+  - has_causation
+  - has_intent
+  - has_negligence
+  - is_contrary_to_morals
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

@@ -5,6 +5,13 @@ legal_article_text: |
 
   2 L'employeur a son recours contre la personne qui a causé le préjudice.
 article_reference: "OR Art. 55"
+available_variables:
+  - is_employer_of_tortfeasor
+  - employee_committed_tort
+  - tort_in_course_of_employment
+  - has_damage
+  - has_causation
+  - employer_proves_diligence
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

@@ -67,19 +67,20 @@ def run_generated_code(
     code_string = _strip_code_fences(code_string)
 
     if input_data is None:
+        year = period[:4]  # "2024-01" -> "2024"
         input_data = {
             "persons": {
                 "p1": {
                     "gross_monthly_salary": {period: 7083.33},
-                    # CO boolean defaults for smoke-testing
-                    "has_offer": {period: True},
-                    "has_acceptance": {period: True},
-                    "has_concordance": {period: True},
-                    "has_reciprocity": {period: True},
-                    "has_unlawful_act": {period: True},
-                    "has_damage": {period: True},
-                    "has_causation": {period: True},
-                    "has_intent": {period: True},
+                    # CO boolean defaults for smoke-testing (YEAR-based variables)
+                    "has_offer": {year: True},
+                    "has_acceptance": {year: True},
+                    "has_concordance": {year: True},
+                    "has_reciprocity": {year: True},
+                    "has_unlawful_act": {year: True},
+                    "has_damage": {year: True},
+                    "has_causation": {year: True},
+                    "has_intent": {year: True},
                 },
             },
             "households": {"h1": {"parents": ["p1"]}},
@@ -118,7 +119,10 @@ def run_generated_code(
     try:
         tbs = CountryTaxBenefitSystem()
         for var_cls in variable_classes:
-            tbs.add_variable(var_cls)
+            if var_cls.__name__ in tbs.variables:
+                tbs.update_variable(var_cls)
+            else:
+                tbs.add_variable(var_cls)
     except Exception as exc:
         return ExecutionResult(
             success=False,
@@ -219,7 +223,10 @@ def run_batch_result(
     try:
         tbs = CountryTaxBenefitSystem()
         for var_cls in all_variable_classes:
-            tbs.add_variable(var_cls)
+            if var_cls.__name__ in tbs.variables:
+                tbs.update_variable(var_cls)
+            else:
+                tbs.add_variable(var_cls)
     except Exception as exc:
         return ExecutionResult(
             success=False,

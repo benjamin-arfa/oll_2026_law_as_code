@@ -10,7 +10,11 @@ from pathlib import Path
 import yaml
 import pytest
 
-from oll_law_as_code.personas import FRANCOIS, GIULIA, HANS, Persona
+from oll_law_as_code.personas import (
+    FRANCOIS, GIULIA, HANS,
+    FRANCOIS_DILIGENT, GIULIA_LATE_NOTICE, HANS_NOT_SUMMONED,
+    Persona,
+)
 from oll_law_as_code.persona_runner import persona_to_openfisca_input
 from oll_law_as_code.runner import run_generated_code
 
@@ -103,6 +107,57 @@ class TestHansDebtorDefault:
         result = run_generated_code(self.CODE, input_data=inp, period="2024")
         assert result.success
         for var_name, expected in HANS.expected_values.items():
+            assert var_name in result.computed_values, f"Missing variable {var_name}"
+            assert result.computed_values[var_name] == pytest.approx(
+                float(expected), abs=0.01
+            ), f"{var_name}: expected {expected}, got {result.computed_values[var_name]}"
+
+
+# ── Negative Personas (expected False / 0) ──────────────────────────────────
+
+
+class TestFrancoisDiligentEmployerNotLiable:
+    """FrancoisDiligent: employer who proves diligence — CO 55 should return False."""
+
+    CODE = _load_yaml_code("or_art55_employer_liability.yaml")
+
+    def test_simulation_returns_false(self):
+        inp = _build_co_input(FRANCOIS_DILIGENT)
+        result = run_generated_code(self.CODE, input_data=inp, period="2024")
+        assert result.success
+        for var_name, expected in FRANCOIS_DILIGENT.expected_values.items():
+            assert var_name in result.computed_values, f"Missing variable {var_name}"
+            assert result.computed_values[var_name] == pytest.approx(
+                float(expected), abs=0.01
+            ), f"{var_name}: expected {expected}, got {result.computed_values[var_name]}"
+
+
+class TestGiuliaLateNoticeWarrantyInvalid:
+    """GiuliaLateNotice: late notice of defect — CO 197 should return False."""
+
+    CODE = _load_yaml_code("or_art197_warranty_claims.yaml")
+
+    def test_simulation_returns_false(self):
+        inp = _build_co_input(GIULIA_LATE_NOTICE)
+        result = run_generated_code(self.CODE, input_data=inp, period="2024")
+        assert result.success
+        for var_name, expected in GIULIA_LATE_NOTICE.expected_values.items():
+            assert var_name in result.computed_values, f"Missing variable {var_name}"
+            assert result.computed_values[var_name] == pytest.approx(
+                float(expected), abs=0.01
+            ), f"{var_name}: expected {expected}, got {result.computed_values[var_name]}"
+
+
+class TestHansNotSummonedNoDefault:
+    """HansNotSummoned: debtor never summoned — CO 102 should return False."""
+
+    CODE = _load_yaml_code("or_art102_debtor_default.yaml")
+
+    def test_simulation_returns_false(self):
+        inp = _build_co_input(HANS_NOT_SUMMONED)
+        result = run_generated_code(self.CODE, input_data=inp, period="2024")
+        assert result.success
+        for var_name, expected in HANS_NOT_SUMMONED.expected_values.items():
             assert var_name in result.computed_values, f"Missing variable {var_name}"
             assert result.computed_values[var_name] == pytest.approx(
                 float(expected), abs=0.01

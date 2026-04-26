@@ -5,6 +5,13 @@ legal_article_text: |
 
   Cette manifestation peut être expresse ou tacite.
 article_reference: "OR Art. 1"
+available_variables:
+  - has_offer
+  - has_acceptance
+  - has_concordance
+  - has_reciprocity
+  - has_required_form
+  - has_capacity
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

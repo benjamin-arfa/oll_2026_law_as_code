@@ -5,6 +5,11 @@ legal_article_text: |
 
   2 Si le contrat n'est vicié que dans certaines de ses clauses, ces clauses sont seules frappées de nullité, à moins qu'il n'y ait lieu d'admettre que le contrat n'aurait pas été conclu sans elles.
 article_reference: "OR Art. 20"
+available_variables:
+  - has_impossible_object
+  - has_illicit_object
+  - has_immoral_object
+  - has_form_defect
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

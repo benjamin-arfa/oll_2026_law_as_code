@@ -7,6 +7,9 @@ legal_article_text: |
 
   Se prescrivent par cinq ans: les loyers et fermages, les intérêts de capitaux et toutes autres redevances périodiques.
 article_reference: "OR Art. 127-128"
+available_variables:
+  - claim_age_years
+  - is_periodic_claim
 openfisca_variable: |
   from openfisca_core.model_api import *
   from openfisca_switzerland.entities import Person

@@ -126,6 +126,22 @@ class TestCountryPackageLoads:
             var = tbs.variables[name]
             assert var.value_type == bool, f"{name} should be bool, got {var.value_type}"
 
+    def test_co_formula_variables_exist(self, tbs):
+        """Verify CO formula variables (from co_formulas.py) are loaded into TBS."""
+        for name in [
+            "or_contract_formation",
+            "or_contract_nullity",
+            "or_tort_liability",
+            "or_employer_liability",
+            "or_unjust_enrichment",
+            "or_contractual_liability",
+            "or_debtor_in_default",
+            "or_warranty_claim_valid",
+        ]:
+            assert name in tbs.variables, f"Missing CO formula variable: {name}"
+            var = tbs.variables[name]
+            assert var.value_type == bool, f"{name} should be bool"
+
     def test_default_values(self, tbs):
         # Variables that default to True
         for name in ["has_required_form", "has_capacity", "has_presumed_fault"]:
